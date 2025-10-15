@@ -1,0 +1,47 @@
+{
+  "name": "top-file-uploader",
+  "version": "1.0.0",
+  "description": "A stripped down file uploader app for The Odin Project practice with Prisma",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hbar1st/TOP-file-uploader.git"
+  },
+  "keywords": [
+    "prisma",
+    "passportjs",
+    "express",
+    "node",
+    "js",
+    "html",
+    "css",
+    "ejs"
+  ],
+  "author": "hbar1st",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/hbar1st/TOP-file-uploader/issues"
+  },
+  "homepage": "https://github.com/hbar1st/TOP-file-uploader#readme",
+  "devDependencies": {
+    "prisma": "^6.17.1"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.17.1",
+    "@quixo3/prisma-session-store": "^3.1.13",
+    "bcrypt": "^6.0.0",
+    "dotenv": "^17.2.3",
+    "ejs": "^3.1.10",
+    "express": "^5.1.0",
+    "express-session": "^1.18.2",
+    "multer": "^2.0.2",
+    "nodemon": "^3.1.10",
+    "passport": "^0.7.0",
+    "passport-local": "^1.0.0",
+    "pg": "^8.16.3"
+  }
+}
