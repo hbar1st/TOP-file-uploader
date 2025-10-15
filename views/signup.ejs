@@ -2,16 +2,42 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Sign Up</title>
+  <link rel="stylesheet" href="styles.css">
+  <title>Sign Up/Login</title>
 </head>
 <body>
-  <h1>Sign Up</h1>
-  <form action="/sign-up" method="POST">
-    <label for="username">Username</label>
-    <input id="username" name="username" placeholder="username" type="text" />
-    <label for="password">Password</label>
-    <input id="password" name="password" type="password" />
-    <button type="submit">Sign Up</button>
-  </form>
+  <h1>Cloud File Storage</h1>
+  <p>This is a stripped-down version of an online file upload site. You must sign-up/login to upload/review files.</p>
+  <p>Note that this app uses Cloudinary on the backend to store your files.</p>
+  
+  <h2><a href="/sign-up">Sign Up</a> or <a href="/login">Login</a></h2>
+  <% console.log({signup}) %>
+  <div <%= signup ? '' : 'hidden' %> >
+    
+    <form action="/sign-up" method="post" id="signup">
+      <legend>All fields are required.</legend>
+      <label for="username">Name</label>
+      <input id="username" name="username" placeholder="name" type="text" />
+      <label for="email">Email</label>
+      <input id="email" name="email" placeholder="email address" type="email" />
+      <label for="password">Password</label>
+      <input id="password" name="password" type="password" />
+      <label for="password">Confirm Password</label>
+      <input id="confirm-password" name="confirm-password" type="password" />
+      <button type="submit">Sign Up</button>
+    </form>
+  </div>
+  
+  <div <%= signup ? 'hidden' : '' %>  >
+    
+    <form  action="/login" method="post" id="login">
+      <legend>All fields are required.</legend>
+      <label for="email">Username</label>
+      <input id="email" name="email" placeholder="email address" type="email" />
+      <label for="password">Password</label>
+      <input id="password" name="password" type="password" />
+      <button type="submit">Login</button>
+    </form>
+  </div>
 </body>
 </html>

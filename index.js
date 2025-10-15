@@ -4,7 +4,7 @@ const crypto = require("crypto");
 // setup prisma-session-store to hold the session data
 const session = require("express-session");
 const { PrismaSessionStore } = require("@quixo3/prisma-session-store");
-const { PrismaClient } = require("@prisma/client");
+const { PrismaClient } = require("./generated/prisma");
 
 const passport = require("./middleware/passport");
 
@@ -53,7 +53,7 @@ app.use("/", userRouter);
 
 // Catch-all for unhandled routes (must be placed last but before error handler)
 app.use((req, res, next) => {
-  res.status(404).render("invalid",{
+  res.status(404).send({
     status: 'fail',
     message: `Can't find ${req.originalUrl} on this server!`
   });
