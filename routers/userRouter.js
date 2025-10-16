@@ -14,7 +14,7 @@ userRouter
   userRouter
     .route("/login")
     .get((req, res) => getLoginForm({ newUser: false, ...req }, res))
-    .post(authenticate);
+    .post(authenticate, (req, res) => { console.log("hmm, why am I here? ")});
 
 userRouter.route("/file-explorer").get((req, res) => { console.log("display file explorer!") });
 

@@ -47,7 +47,7 @@ const validateUserFields = [
 ];
 const signUp = [
   validateUserFields,
-  async (req, res) => {
+  async (req, res, next) => {
     const errors = validationResult(req);
     
     console.log("ERRORS? ", errors);
