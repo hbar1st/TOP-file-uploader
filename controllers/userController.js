@@ -84,7 +84,7 @@ function authenticate(req, res, next) {
         res.render("signup", { signup: true , errors: errors.array() });
       } else {
         const hashedPassword = bcrypt.hashSync(req.body.password, 7);
-        const newUser = addNewUser(req.body.username, req.body.email, hashedPassword);
+        const newUser = await addNewUser(req.body.username, req.body.email, hashedPassword);
         req.login(newUser, function (err) {
           if (err) {
             return next(err);

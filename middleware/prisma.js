@@ -6,6 +6,10 @@ const prisma = new PrismaClient({
       emit: "stdout",
       level: "error", // Log only errors to stdout
     },
+    {
+      emit: 'stdout',
+      level: 'query', // Log database queries
+    },
     // You can also add other levels like 'warn', 'info', or 'query'
     // {
     //   emit: 'stdout',
@@ -14,10 +18,6 @@ const prisma = new PrismaClient({
     // {
     //   emit: 'stdout',
     //   level: 'info',
-    // },
-    // {
-    //   emit: 'stdout',
-    //   level: 'query', // Log database queries
     // },
   ],
   errorFormat: "pretty",
