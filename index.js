@@ -58,6 +58,8 @@ app.use((req, res, next) => {
 const userRouter = require("./routers/userRouter");
 app.use("/", userRouter);
 
+const fileRouter = require("./routers/fileRouter");
+app.use("/file", fileRouter)
 
 // Catch-all for unhandled routes (must be placed last but before error handler)
 app.use((req, res, next) => {

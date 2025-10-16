@@ -1,6 +1,8 @@
 # TOP-file-uploader
 A stripped down file uploader for The Odin Project practice with Prisma
 
+**[Live App Link](https://zealous-galina-hbar1stdev-cab86b9b.koyeb.app/ "File Uploader App")**
+
 [ ] if a file is to be accessed and checked if it is shared, we must also go 'up the tree' to see if any parent is shared
 [ ] create a menu with the option to change the user's name or password
 [ ] maybe also allow them to change their email address but that would require that they type in a special code that you sent them (which would expire in 5 minutes?)

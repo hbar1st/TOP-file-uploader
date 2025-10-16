@@ -22,7 +22,8 @@ function authenticate(req, res, next) {
       } else {
         req.logIn(user, (err) => {
           if (err) { return next(err); }
-          return res.redirect('/file-explorer');
+          console.log("user authenticated, show file explorer next");
+          return res.redirect('/file/explorer');
         });
       }
     })(req, res, next);
@@ -89,7 +90,7 @@ function authenticate(req, res, next) {
           if (err) {
             return next(err);
           }
-          res.redirect("/file-explorer");
+          res.redirect("/file/explorer");
         });
       }
     }
