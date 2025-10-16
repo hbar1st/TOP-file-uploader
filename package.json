@@ -4,6 +4,8 @@
   "description": "A stripped down file uploader app for The Odin Project practice with Prisma",
   "main": "index.js",
   "scripts": {
+    "build": "prisma migrate reset -f",
+    "prisma:generate": "prisma generate",
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "nodemon index.js"
   },
