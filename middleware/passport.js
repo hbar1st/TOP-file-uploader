@@ -1,6 +1,6 @@
 const passport = require("passport");
 const LocalStrategy = require("passport-local").Strategy;
-const User = require("../db/userQueries");
+const {findUser, findUserById} = require("../db/userQueries");
 const bcrypt = require("bcrypt");
 
 passport.use(
@@ -12,7 +12,7 @@ passport.use(
     async (email, password, done) => {
       console.log("trying to authenticate: ", email, password);
       try {
-        const user = await User.findUser(email);
+        const user = await findUser(email);
         if (user === null) {
           console.log("it's the wrong email address");
           return done(null, false, { message: "Incorrect email address." });
@@ -42,7 +42,7 @@ passport.serializeUser((user, cb) => {
 passport.deserializeUser(async (id, done) => {
   console.log("in deserializeUser: ", id)
   try {
-    const { rows } = await User.findUserById(id);
+    const { rows } = await findUserById(id);
     const user = rows[0];
 
     done(null, user);

@@ -14,7 +14,11 @@ async function addNewUser(name, email, password) {
 
 async function findUser(email) {
   console.log("in findUser: ", email);
-  const user = await prisma.user.findUser(email);
+  const user = await prisma.user.findFirst({
+    where: {
+      email
+    }
+  });
   console.log("rows found: ", user);
   return user;
 }
@@ -22,7 +26,7 @@ async function findUser(email) {
 async function findUserById(id) {
   console.log("in findUserById: ", id)
   // By unique identifier
-  const user = await prisma.user.findUnique({
+  const user = await prisma.user.findFirst({
     where: {
       id,
     },
@@ -31,10 +35,8 @@ async function findUserById(id) {
   return user;
 }
 
-const User = {
+module.exports = {
   addNewUser,
   findUser,
   findUserById,
 };
-
-module.exports = User;

@@ -1,4 +1,4 @@
-const User = require("../db/userQueries");
+const {findUser, addNewUser} = require("../db/userQueries");
 const ve = require("../errors/ValidationError");
 
 const { body, validationResult } = require("express-validator");
@@ -33,7 +33,17 @@ const validateUserFields = [
   .notEmpty()
   .withMessage("An email is required.")
   .isEmail()
-  .withMessage("Provide a valid email address."),
+  .withMessage("Provide a valid email address.")
+  .custom(async (value, { req }) => {
+    console.log("try to validate if the email is unique: ", value);
+    const userRow = await findUser(value);
+    console.log(userRow);
+    if (userRow) {
+      throw new Error("This email has already been registered. You must login instead.");
+    } else {
+      return true;
+    }
+  }),
   body("password").trim().notEmpty().withMessage("A password is required."),
   body("confirm-password").trim().notEmpty().withMessage("A password confirmation is required.")
   .custom((value, { req }) => {
@@ -55,7 +65,7 @@ const signUp = [
       res.render("signup", { signup: true , errors: errors.array() });
     } else {
       const hashedPassword = bcrypt.hashSync(req.body.password, 7);
-      const newUser = User.addNewUser(req.body.username, req.body.email, hashedPassword);
+      const newUser = addNewUser(req.body.username, req.body.email, hashedPassword);
       req.login(newUser, function (err) {
         if (err) {
           return next(err);
