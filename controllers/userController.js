@@ -1,4 +1,4 @@
-const db = require("../db/queries");
+const User = require("../db/userQueries");
 const ve = require("../errors/ValidationError");
 
 const { body, validationResult } = require("express-validator");
@@ -55,7 +55,7 @@ const signUp = [
       res.render("signup", { signup: true , errors: errors.array() });
     } else {
       const hashedPassword = bcrypt.hashSync(req.body.password, 7);
-      const newUser = db.addNewUser(req.body.username, req.body.email, hashedPassword);
+      const newUser = User.addNewUser(req.body.username, req.body.email, hashedPassword);
       req.login(newUser, function (err) {
         if (err) {
           return next(err);

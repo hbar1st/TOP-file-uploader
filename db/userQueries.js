@@ -30,8 +30,11 @@ async function findUserById(id) {
   console.log("return user: ", user)
   return user;
 }
-module.exports = {
+
+const User = {
   addNewUser,
   findUser,
   findUserById,
-}
+};
+
+module.exports = User;
