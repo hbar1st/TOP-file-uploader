@@ -3,8 +3,7 @@ const ve = require("../errors/ValidationError");
 
 const { body, validationResult } = require("express-validator");
 const bcrypt = require("bcrypt");
-
-const passport = require("../middleware/passport");
+const passport = require("passport");
 
 
 function authenticate(req, res, next) {
