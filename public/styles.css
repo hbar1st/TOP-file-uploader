@@ -29,6 +29,7 @@ form {
   }
   > button {
     grid-column: 1 / -1;
+    margin-top: 2rem;
     padding: 2px 5px;
   }
 }
@@ -39,4 +40,15 @@ input:invalid {
 }
 input:valid {
   border: 1px solid green;
+}
+
+.errors {
+  list-style-type: none;
+  color: rgb(186, 1, 1);
+  font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+  font-weight: 500;
+  font-size: small;
+  margin-top: 1rem;
+  margin-left: 1rem;
+  margin-bottom: 1rem;
 }

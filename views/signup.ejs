@@ -14,28 +14,30 @@
   <% console.log({signup}) %>
   <div <%= signup ? '' : 'hidden' %> >
     
+    <%- include("partials/errors.ejs") %>
     <form action="/sign-up" method="post" id="signup">
       <legend>All fields are required.</legend>
       <label for="username">Name</label>
-      <input id="username" name="username" placeholder="name" type="text" />
+      <input required id="username" name="username" type="text" />
       <label for="email">Email</label>
-      <input id="email" name="email" placeholder="email address" type="email" />
+      <input required id="email" name="email" type="email" />
       <label for="password">Password</label>
-      <input id="password" name="password" type="password" />
+      <input required id="password" name="password" type="password" />
       <label for="password">Confirm Password</label>
-      <input id="confirm-password" name="confirm-password" type="password" />
+      <input required id="confirm-password" name="confirm-password" type="password" />
       <button type="submit">Sign Up</button>
     </form>
   </div>
   
   <div <%= signup ? 'hidden' : '' %>  >
     
+    <%- include("partials/errors.ejs") %>
     <form  action="/login" method="post" id="login">
       <legend>All fields are required.</legend>
       <label for="email">Username</label>
-      <input id="email" name="email" placeholder="email address" type="email" />
+      <input required id="email" name="email" type="email" />
       <label for="password">Password</label>
-      <input id="password" name="password" type="password" />
+      <input required id="password" name="password" type="password" />
       <button type="submit">Login</button>
     </form>
   </div>

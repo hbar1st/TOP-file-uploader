@@ -2,7 +2,7 @@ const { Router } = require("express");
 
 const userRouter = Router();
 
-const { getLoginForm, signUp } = require("../controllers/userController");
+const { getLoginForm, signUp, authenticate } = require("../controllers/userController");
 
 userRouter.get("/", (req, res) => getLoginForm({ newUser: true, ...req }, res));
 
@@ -14,6 +14,8 @@ userRouter
   userRouter
     .route("/login")
     .get((req, res) => getLoginForm({ newUser: false, ...req }, res))
-    .post((req, res) => {});
+    .post(authenticate);
+
+userRouter.route("/file-explorer").get((req, res) => { console.log("display file explorer!") });
 
 module.exports = userRouter;

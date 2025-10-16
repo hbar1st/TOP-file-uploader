@@ -47,6 +47,14 @@ app.use(
   })
 );
 
+app.use(passport.session());
+
+app.use((req, res, next) => {
+  res.locals.currentUser = req.user;
+  next();
+});
+
+
 const userRouter = require("./routers/userRouter");
 app.use("/", userRouter);
 
@@ -67,12 +75,15 @@ app.use((err, req, res, next) => {
   console.error("in the catch-all: ", err);
   res.status(500);
   // Send a user-friendly error message to the client
+  res.render("500", { error: err });
+  /*
   res.json({
     message: "Internal Server Error, check the server logs.",
     // In development, you might send the full error stack for debugging
     error: process.env.NODE_ENV === "development" ? err : {},
     cause: process.env.NODE_ENV === "development" ? err.cause : {},
   });
+  */
 });
 
 const port = process.env.PORT || 3000;
