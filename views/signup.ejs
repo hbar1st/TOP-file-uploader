@@ -30,7 +30,7 @@
   </div>
   
   <div <%= signup ? 'hidden' : '' %>  >
-    
+    <% console.log("any errors: ", errors); %>
     <%- include("partials/errors.ejs") %>
     <form  action="/login" method="post" id="login">
       <legend>All fields are required.</legend>

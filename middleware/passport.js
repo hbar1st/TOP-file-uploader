@@ -9,7 +9,7 @@ passport.use(
       usernameField: "email", // This tells Passport to look for 'email' in the request body
       passwordField: "password",
     },
-    async (email, password, done) => {
+    async function verify(email, password, done) {
       console.log("trying to authenticate: ", email, password);
       try {
         const user = await findUser(email);
