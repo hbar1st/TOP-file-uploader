@@ -14,6 +14,8 @@
     </header>
     <div>
       <section>
+        
+        <%- include("partials/errors.ejs") %>
         <span title="right-click for details" id="root-folder"><img src="/assets/folder.svg" alt="folder"><%= rootFolder.name %></span>
         <div id="root-folder-context-menu" class="context-menu" style="display:none">
           
@@ -32,7 +34,7 @@
           </ul>
         </div>
       </section>
-      <section>
+      <section id="files-and-folders">
         <form id="create-new-folder" action="/file/folder/new/" method="post" >
           <input type="hidden" name="root-folder" value=<%= rootFolder.id %>>
           <input type="text" name="new-folder" value="New Folder" minlength="1" maxlength="255">
@@ -46,9 +48,8 @@
           <button id="cancel-upload"><img src="/assets/close_small_black.svg" alt="close"></button>
         </form>
         <% folders.forEach(folder => { %>
-          <% console.log(folder.name); %>
           
-          
+          <a href=<%= `/file/folder/${folder.id}` %> id=<%= folder.id %>><span class="folders"><img src=<%= folder.shared ? '/assets/folder_shared.svg' : '/assets/folder.svg' %> alt=""><%= folder.name %></span></a>
           <% }); %>
         </section>
       </div>
@@ -61,6 +62,7 @@
       const uploadFileForm = document.querySelector("#upload-file");
       const cancelNewFolderForm = document.querySelector("#cancel-new-folder");
       const cancelUpload = document.querySelector("#cancel-upload");
+      const filesAndFoldersSection = document.querySelector("#files-and-folders")
       
       createNewFolderForm.style.display="none";
       uploadFileForm.style.display = "none";
@@ -71,6 +73,12 @@
         "#root-folder-context-menu").style.display = "none"
       }
       
+      filesAndFoldersSection.addEventListener("contextmenu", (e) => {
+        e.preventDefault();
+        console.log(e.target.parentNode.id);
+
+
+      })
       cancelUpload.addEventListener("click", (e) => {
         e.preventDefault();
         uploadFileForm.style.display="none";
@@ -80,10 +88,10 @@
         createNewFolderForm.style.display="none";
       });
       uploadFileHereBtn.addEventListener("click", (e) => {
-        uploadFileForm.style.display = "flex";
+        uploadFileForm.style.display = "grid";
       })
       newFolderBtn.addEventListener("click", (e) => {
-        createNewFolderForm.style.display="flex";
+        createNewFolderForm.style.display="grid";
       });
       rootFolder.addEventListener("contextmenu", (e) => {
         e.preventDefault()

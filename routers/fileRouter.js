@@ -10,6 +10,6 @@ function protectRoute(req, res, next) {
 
 fileRouter.get("/explorer", protectRoute, getFileExplorer);
 
-fileRouter.get("/folder/new/:parentId", protectRoute, createNewFolder);
+fileRouter.post("/folder/new", protectRoute, createNewFolder);
 
 module.exports = fileRouter;

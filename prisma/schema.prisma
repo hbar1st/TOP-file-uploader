@@ -37,7 +37,7 @@ model File {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime? @updatedAt
   name          String    @unique @db.VarChar(255)
-  location      String    @db.VarChar(255)
+  location      String    @db.VarChar(255)  
   size          Int
   shared        Boolean   @default(false)
   shareDuration Int       @default(0)
@@ -58,6 +58,6 @@ model Folder {
   authorId      Int
   files         File[]
   parent        Folder?   @relation(name: "folderToFolder", fields: [parentId], references: [id])
-  parentId      Int?      @unique
+  parentId      Int?    
   children      Folder[]  @relation(name: "folderToFolder")
 }

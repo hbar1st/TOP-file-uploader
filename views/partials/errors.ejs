@@ -1,5 +1,5 @@
 <% if (locals.errors) {%>
-  <ul class="errors" <%= errors.length > 0 ? '' : 'hidden' %> >
+  <ul class="errors" <%= locals.errors.length > 0 ? '' : 'hidden' %> >
    <% errors.forEach(function(error) { %>
       <li><%= error.msg %></li>
     <% }); %>

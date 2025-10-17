@@ -9,8 +9,8 @@ async function addFile() {
         name,
         location: "no idea",
         size: 0,
-        authorId,
-        parentId
+        authorId: Number(authorId),
+        parentId: Number(parentId)
       }
     })
 }
@@ -38,18 +38,21 @@ async function hasRootFolder(authorId, rootId) {
   });
   return rootFolder;
 }
-/*
-async function addFolder(name) {
-  console.log("in addFolder: ", name);
+
+async function createFolder(authorId, parentId, name) {
+  console.log("in createFolder: ", authorId, parentId, name);
+  
   const newFolder = await prisma.folder.create({
     data: {
       createdAt: new Date(),
       name,
-      authorId,
+      authorId: Number(authorId),
+      parentId: Number(parentId),
     }
   })
+  return newFolder;
 }
-*/
+
 function getRootFiles(authorId, parentId) {
   console.log("in getRootFiles: ", authorId, parentId);
   const files = prisma.file.findMany({
@@ -70,9 +73,21 @@ function getRootFolders(authorId, parentId) {
   });
   return folders;
 }
+
+function getFolder(id) {
+  console.log("in getFolder: ", id);
+  const folder = prisma.folder.findUnique({
+    where: {
+      id: Number(id)
+    }
+  })
+  return folder;
+}
 module.exports = {
   createRootFolder,
   getRootFiles,
   getRootFolders,
   hasRootFolder,
+  getFolder,
+  createFolder,
 };
