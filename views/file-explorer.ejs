@@ -2,14 +2,104 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <link rel="stylesheet" href="/files.css">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>File Explorer</title>
 </head>
 <body>
   <main>
     <header>
-      You've logged in as: <%= username %>
+      <h1>File Uploader App</h1>
+      <h2>Welcome <%= user.name %></h2>
     </header>
-  </main>
-</body>
-</html>
+    <div>
+      <section>
+        <span title="right-click for details" id="root-folder"><img src="/assets/folder.svg" alt="folder"><%= rootFolder.name %></span>
+        <div id="root-folder-context-menu" class="context-menu" style="display:none">
+          
+          <ul>
+            <li><span>Name:</span> <span><%= rootFolder.name %></span> </li>
+            <li><span>Created:</span> <span><%= rootFolder.createdAt.toLocaleString().slice(0,16) %></span> </li>
+            <li><span>Updated:</span> <span><%= rootFolder.updatedAt.toLocaleString().slice(0,16) || '' %></span> </li>
+            <li><span>Location:</span> <span><%= rootFolder.location || '' %></span></li>
+            <li><span>Shared:</span> <span><%= rootFolder.shared || '' %></span> </li>
+            <li><span>Share Expiry:</span> <span><%= rootFolder.shareExpiry || '' %></span> </li>
+          </ul>
+          <ul>
+            <li><button type="button" id="upload-file-here">Upload a file here</button></li>
+            <li><button id="new-folder" type="button">New folder</button></li>
+            <li><a href=<%= `/file/folder/share/${rootFolder.id}` %>>Share this folder</a></li>
+          </ul>
+        </div>
+      </section>
+      <section>
+        <form id="create-new-folder" action="/file/folder/new/" method="post" >
+          <input type="hidden" name="root-folder" value=<%= rootFolder.id %>>
+          <input type="text" name="new-folder" value="New Folder" minlength="1" maxlength="255">
+          <button type="submit"><img src="/assets/create_new_folder.svg" alt="create new folder"></button>
+          <button id="cancel-new-folder"><img src="/assets/close_small_black.svg" alt="close"></button>
+        </form>
+        <form id="upload-file" action="/file/upload/" method="post" >
+          <input type="hidden" name="root-folder" value=<%= rootFolder.id %>>
+          <input type="file" name="upload">
+          <button type="submit"><img src="/assets/upload_file.svg" alt="upload file"></button>
+          <button id="cancel-upload"><img src="/assets/close_small_black.svg" alt="close"></button>
+        </form>
+        <% folders.forEach(folder => { %>
+          <% console.log(folder.name); %>
+          
+          
+          <% }); %>
+        </section>
+      </div>
+    </main>
+    <script>
+      const newFolderBtn = document.querySelector("#new-folder");
+      const uploadFileHereBtn = document.querySelector("#upload-file-here");
+      const rootFolder = document.querySelector("#root-folder");
+      const createNewFolderForm = document.querySelector("#create-new-folder");
+      const uploadFileForm = document.querySelector("#upload-file");
+      const cancelNewFolderForm = document.querySelector("#cancel-new-folder");
+      const cancelUpload = document.querySelector("#cancel-upload");
+      
+      createNewFolderForm.style.display="none";
+      uploadFileForm.style.display = "none";
+      document.onclick = hideMenu;
+      
+      function hideMenu() {
+        document.querySelector(
+        "#root-folder-context-menu").style.display = "none"
+      }
+      
+      cancelUpload.addEventListener("click", (e) => {
+        e.preventDefault();
+        uploadFileForm.style.display="none";
+      })
+      cancelNewFolderForm.addEventListener("click", (e) => {
+        e.preventDefault();
+        createNewFolderForm.style.display="none";
+      });
+      uploadFileHereBtn.addEventListener("click", (e) => {
+        uploadFileForm.style.display = "flex";
+      })
+      newFolderBtn.addEventListener("click", (e) => {
+        createNewFolderForm.style.display="flex";
+      });
+      rootFolder.addEventListener("contextmenu", (e) => {
+        e.preventDefault()
+        
+        if (document.querySelector(
+        "#root-folder-context-menu").style.display == "block")
+        hideMenu();
+        else {
+          let menu = document
+          .querySelector("#root-folder-context-menu")
+          
+          menu.style.display = 'block';
+          menu.style.left = e.pageX + "px";
+          menu.style.top = e.pageY + "px";
+        }
+      });
+    </script>
+  </body>
+  </html>

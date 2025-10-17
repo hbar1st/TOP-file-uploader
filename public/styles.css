@@ -49,6 +49,14 @@ input:valid {
   font-weight: 500;
   font-size: small;
   margin-top: 1rem;
-  margin-left: 1rem;
   margin-bottom: 1rem;
+      background-color: #ffcfcf;
+    border-radius: 10px;
+    padding: .5ch 1ch;
+    font-weight: 550;
+    text-shadow: 1px 1px 3px white;
+}
+
+button {
+  padding: 1ch 2ch;
 }
