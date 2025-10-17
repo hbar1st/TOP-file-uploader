@@ -30,6 +30,7 @@
   },
   "homepage": "https://github.com/hbar1st/TOP-file-uploader#readme",
   "devDependencies": {
+    "ejs-lint": "^2.0.1",
     "prisma": "^6.17.1"
   },
   "dependencies": {

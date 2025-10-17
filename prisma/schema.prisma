@@ -39,6 +39,7 @@ model File {
   name          String    @unique @db.VarChar(255)
   location      String    @db.VarChar(255)  
   size          Int
+  pathArr       Int[]
   shared        Boolean   @default(false)
   shareDuration Int       @default(0)
   author        User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
@@ -57,6 +58,7 @@ model Folder {
   author        User      @relation(fields: [authorId], references: [id])
   authorId      Int
   files         File[]
+  pathArr       Int[]     
   parent        Folder?   @relation(name: "folderToFolder", fields: [parentId], references: [id])
   parentId      Int?    
   children      Folder[]  @relation(name: "folderToFolder")

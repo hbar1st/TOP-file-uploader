@@ -137,3 +137,10 @@
     align-items: center;
     column-gap: 1ch;
     }
+
+    .contents {
+      list-style-type: none;
+      display: flex;
+      flex-direction: column;
+      column-gap: 1ch;
+    }

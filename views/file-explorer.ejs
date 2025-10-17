@@ -16,21 +16,30 @@
       <section>
         
         <%- include("partials/errors.ejs") %>
-        <span title="right-click for details" id="root-folder"><img src="/assets/folder.svg" alt="folder"><%= rootFolder.name %></span>
+        <span title="right-click for details" id="root-folder">
+          <img src="/assets/folder.svg" alt="folder">
+          <% paths.forEach(path => { %>
+            <a href=<%= `/file/explorer/${path.id}` %>><%= path.name %></a>
+            <%= (path.name === '/') ? `` : ` /` %>
+          <% }) %>
+        </span>
         <div id="root-folder-context-menu" class="context-menu" style="display:none">
           
           <ul>
             <li><span>Name:</span> <span><%= rootFolder.name %></span> </li>
-            <li><span>Created:</span> <span><%= rootFolder.createdAt.toLocaleString().slice(0,16) %></span> </li>
-            <li><span>Updated:</span> <span><%= rootFolder.updatedAt.toLocaleString().slice(0,16) || '' %></span> </li>
+            <li><span>Created:</span> <span><%= rootFolder.createdAt.toLocaleString().slice(0,17) %></span> </li>
+            <li><span>Updated:</span> <span><%= rootFolder.updatedAt.toLocaleString().slice(0,17) || '' %></span> </li>
             <li><span>Location:</span> <span><%= rootFolder.location || '' %></span></li>
-            <li><span>Shared:</span> <span><%= rootFolder.shared || '' %></span> </li>
+            <li><span>Shared:</span> <%= rootFolder.shared ? 'yes' : 'no' %> </li>
             <li><span>Share Expiry:</span> <span><%= rootFolder.shareExpiry || '' %></span> </li>
           </ul>
           <ul>
             <li><button type="button" id="upload-file-here">Upload a file here</button></li>
             <li><button id="new-folder" type="button">New folder</button></li>
             <li><a href=<%= `/file/folder/share/${rootFolder.id}` %>>Share this folder</a></li>
+            <% if (!isRootFolder) { %>         
+                <li><a href=<%= `/file/folder/delete/${rootFolder.id}` %>>Delete this folder</a></li>
+            <% } %>
           </ul>
         </div>
       </section>
@@ -47,10 +56,31 @@
           <button type="submit"><img src="/assets/upload_file.svg" alt="upload file"></button>
           <button id="cancel-upload"><img src="/assets/close_small_black.svg" alt="close"></button>
         </form>
-        <% folders.forEach(folder => { %>
-          
-          <a href=<%= `/file/folder/${folder.id}` %> id=<%= folder.id %>><span class="folders"><img src=<%= folder.shared ? '/assets/folder_shared.svg' : '/assets/folder.svg' %> alt=""><%= folder.name %></span></a>
-          <% }); %>
+        <ul class="contents">
+          <% folders.forEach(folder => { %>
+            
+            <li><a href=<%= `/file/explorer/${folder.id}` %> data-id=<%= folder.id %>>
+              <span class="folders" data-id=<%= folder.id %>><img src=<%= folder.shared ? '/assets/folder_shared.svg' : '/assets/folder.svg' %> alt=""><%= folder.name %></span></a>
+            </li>
+            
+            <div id=<%= `folder-context-menu-${folder.id}` %> class="context-menu" style="display:none">
+              
+              <ul>
+                <li><span>Name:</span> <span><%= folder.name %></span> </li>
+                <li><span>Created:</span> <span><%= folder.createdAt.toLocaleString().slice(0,17) %></span> </li>
+                <li><span>Updated:</span> <span><%= folder.updatedAt.toLocaleString().slice(0,17) || '' %></span> </li>
+                <li><span>Location:</span> <span><%= folder.location || '' %></span></li>
+                <li><span>Shared:</span> <%= folder.shared ? 'yes' : 'no' %> </li>
+                <li><span>Share Expiry:</span> <span><%= folder.shareExpiry || '' %></span> </li>
+              </ul>
+              <ul>
+                <li><a href=<%= `/file/folder/share/${folder.id}` %>>Share this folder</a></li>            
+                <li><a href=<%= `/file/folder/delete/${folder.id}` %>>Delete this folder</a></li>
+              </ul>
+            </div>
+            <% }); %>
+            
+          </ul>
         </section>
       </div>
     </main>
@@ -62,22 +92,35 @@
       const uploadFileForm = document.querySelector("#upload-file");
       const cancelNewFolderForm = document.querySelector("#cancel-new-folder");
       const cancelUpload = document.querySelector("#cancel-upload");
-      const filesAndFoldersSection = document.querySelector("#files-and-folders")
-      
+      const filesAndFoldersSection = document.querySelector("#files-and-folders");
+      const allContextMenus = document.querySelectorAll(
+      ".context-menu");
+
       createNewFolderForm.style.display="none";
       uploadFileForm.style.display = "none";
-      document.onclick = hideMenu;
+
+      document.onclick = hideAllMenus;
       
-      function hideMenu() {
-        document.querySelector(
-        "#root-folder-context-menu").style.display = "none"
+      function hideAllMenus(e) {
+        allContextMenus.forEach(menu => menu.style.display = "none");
       }
+      
       
       filesAndFoldersSection.addEventListener("contextmenu", (e) => {
         e.preventDefault();
-        console.log(e.target.parentNode.id);
-
-
+        const folderId = e.target.parentNode.dataset.id;
+        
+        let menu = document
+        .querySelector(`#folder-context-menu-${folderId}`);
+        if (menu.style.display == "block") {
+          hideAllMenus();
+        }
+        else {
+          menu.style.display = 'block';
+          menu.style.left = e.pageX + "px";
+          menu.style.top = e.pageY + "px";
+        }
+        
       })
       cancelUpload.addEventListener("click", (e) => {
         e.preventDefault();
@@ -96,13 +139,12 @@
       rootFolder.addEventListener("contextmenu", (e) => {
         e.preventDefault()
         
-        if (document.querySelector(
-        "#root-folder-context-menu").style.display == "block")
-        hideMenu();
+        let menu = document
+        .querySelector("#root-folder-context-menu");
+        if (menu.style.display === "block") {
+          hideAllMenus();
+        }
         else {
-          let menu = document
-          .querySelector("#root-folder-context-menu")
-          
           menu.style.display = 'block';
           menu.style.left = e.pageX + "px";
           menu.style.top = e.pageY + "px";
