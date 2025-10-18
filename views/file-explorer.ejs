@@ -79,7 +79,7 @@
                   <button type="submit"><img src="/assets/create_new_folder.svg" alt="create new folder"></button>
                   <button id="cancel-new-folder"><img src="/assets/close_small_black.svg" alt="close"></button>
                 </form>
-                <form id="upload-file" action="/file/upload/" method="post" >
+                <form id="upload-file" action="/file/upload/" method="post" enctype="multipart/form-data">
                   
                   <input type="hidden" name="authorId" value=<%= user.id %>>
                   <input type="hidden" name="root-folder" value=<%= rootFolder.id %>>

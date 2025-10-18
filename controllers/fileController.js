@@ -14,6 +14,29 @@ const {
 } = require("../db/fileQueries");
 
 
+const multer = require("multer");
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "uploads/");
+  },
+  filename: (req, file, cb) => {
+    cb(null, file.originalname);
+  },
+});
+
+const upload = multer({ storage });
+
+uploadFile = [
+  upload.single('upload'),
+  async (req, res) => {
+    console.log("in uploadFile: ", req.file, req.body);
+    const { originalname, size, path } = req.file;
+    // req.file is the `avatar` file
+    // req.body will hold the text fields, if there were any
+    createFile()
+  }
+]
+
 validateFolder = [
   body("root-folder")
   .trim()
@@ -196,4 +219,5 @@ module.exports = {
   createNewFolder,
   deleteFolder,
   updateFolder,
+  uploadFile,
 };
