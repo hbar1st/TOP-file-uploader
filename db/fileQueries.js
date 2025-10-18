@@ -115,8 +115,18 @@ function deleteFolder(authorId, id) {
   return deletedFolder;
 }
 
-function getUniqueFolder(folderId, parentId, authorId) {
-  
+function getUniqueFolder(name, parentId, authorId) {
+  console.log("in getUniqueFolder: ", name, parentId, authorId);
+  const folder = prisma.folder.findUnique({
+    where: {
+      authorId_name_parentId: {
+        authorId: Number(authorId),
+        name,
+        parentId: Number(parentId),
+      },
+    },
+  });
+  return folder;
 }
 
 async function getFolderPath(authorId, folderIds, path=[]) {

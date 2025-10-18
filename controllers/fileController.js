@@ -33,10 +33,11 @@ validateFolder = [
   })
   .withMessage("The folder name length must not exceed 255 characters.")
   .custom(async (value, { req }) => {
-    //check if this is a unique name in the current path
+    console.log("check if this is a unique name in the current path");
     const folder = await getUniqueFolder(value, req.body["root-folder"], req.body.authorId);
-    if (folder && folder.name !== value) {
-      throw new Error("This folder name already exists.")
+    console.log("retrieved folder: ", folder);
+    if (folder) {
+      throw new Error(`This folder name, "${value}", already exists.`);
     }
   })
 ]
@@ -57,8 +58,8 @@ validateFolderB4Update = [
       req.body.folderId,
       req.body.authorId
     );
-    if (folder && folder.name !== value) {
-      throw new Error("This folder name already exists.");
+    if (folder) {
+      throw new Error(`This folder name, "${value}", already exists.`);
     }
   }),
 ];
@@ -77,7 +78,7 @@ updateFolder = [
       
       console.log("ERRORS? ", errors);
       if (!errors.isEmpty()) {
-        req.errors = errors.array();
+        //req.errors = errors.array();
         getFileExplorer(req, res);
       } else {
         const folder = await dbUpdateFolder(user.id, req.body.parentId, req.body.folderId, req.body["folder-name"]);
@@ -102,7 +103,7 @@ createNewFolder = [
     
     console.log("ERRORS? ", errors);
     if (!errors.isEmpty()) {
-      req.errors = errors.array();
+      //req.errors = errors.array();
       getFileExplorer(req, res);
     } else {
       const paths = await getFolderPath(user.id, [req.body["root-folder"]]);
@@ -170,11 +171,13 @@ async function getFileExplorer(req, res) {
     let errors = validationResult(req);
     if (req.errors) {
       errors = [...errors.array(), ...req.errors];
+    } else {
+      errors = errors.array();
     }
     console.log("ERRORS? ", errors);
     
     const paths = await getFolderPath(user.id, [rootFolder.id]);
-    if ((req.errors && errors.length > 0) || (!req.errors && !errors.isEmpty())) {
+    if (errors.length > 0) {
       
       res.render("file-explorer", { user, rootFolder, folders, files, isRootFolder, errors, paths });
     } else {
