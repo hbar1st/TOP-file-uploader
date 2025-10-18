@@ -1,3 +1,4 @@
+const { Prisma } = require("@prisma/client");
 const prisma = require("../middleware/prisma");
 
 /*
@@ -22,7 +23,7 @@ async function createRootFolder(authorId) {
     data: {
       createdAt: new Date(),
       name: "/",
-      authorId,
+      authorId: Number(authorId),
     },
   });
   return newFolder;
@@ -30,11 +31,12 @@ async function createRootFolder(authorId) {
 
 async function hasRootFolder(authorId) {
   console.log("in hasRootFolder: ", authorId);
-  const rootFolder = await prisma.folder.findUnique({
+  const rootFolder = await prisma.folder.findFirst({
     where: {
-      authorId,
-      name: '/'
-    }
+      name: "/",
+      authorId: Number(authorId),
+      parentId: null,
+    },
   });
   return rootFolder;
 }
@@ -54,11 +56,27 @@ async function createFolder(authorId, parentId, name, pathArr) {
   return newFolder;
 }
 
+function updateFolder(authorId, parentId, folderId, newName) {
+  console.log("in updateFolder: ", authorId, parentId, folderId, newName);
+  const folder = prisma.folder.update({
+    where: {
+      authorId: Number(authorId),
+      parentId: Number(parentId),
+      id: Number(folderId)
+    },
+    data: {
+      name: newName
+    }
+  });
+  return folder;
+}
+
 function getFiles(authorId, parentId) {
   console.log("in getFiles: ", authorId, parentId);
   const files = prisma.file.findMany({
     where: {
-      parentId,
+      parentId: Number(parentId),
+      authorId: Number(authorId)
     },
   });
   return files;
@@ -68,30 +86,37 @@ function getFolders(authorId, parentId) {
   console.log("in getFolders: ", authorId, parentId);
   const folders = prisma.folder.findMany({
     where: {
-      authorId,
-      parentId,
+      authorId: Number(authorId),
+      parentId: Number(parentId),
     },
   });
   return folders;
 }
 
-function getFolder(id) {
-  console.log("in getFolder: ", id);
+function getFolder(authorId, id) {
+  console.log("in getFolder: ", authorId, id);
   const folder = prisma.folder.findUnique({
     where: {
-      id: Number(id)
+      id: Number(id),
+      authorId: Number(authorId)
     }
   })
   return folder;
 }
 
-function deleteFolder(id) {
-  console.log("in deleteFolder: ", id);
-  prisma.folder.delete({
+function deleteFolder(authorId, id) {
+  console.log("in deleteFolder: ", authorId, id);
+  const deletedFolder = prisma.folder.delete({
     where: {
-      id
+      id: Number(id),
+      authorId: Number(authorId)
     }
   })
+  return deletedFolder;
+}
+
+function getUniqueFolder(folderId, parentId, authorId) {
+  
 }
 
 async function getFolderPath(authorId, folderIds, path=[]) {
@@ -130,5 +155,7 @@ module.exports = {
   getFolder,
   createFolder,
   getFolderPath,
-  deleteFolder
+  deleteFolder,
+  getUniqueFolder,
+  updateFolder
 };

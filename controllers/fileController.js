@@ -8,7 +8,9 @@ const {
   getFolder,
   createFolder,
   getFolderPath,
+  getUniqueFolder,
   deleteFolder: dbDeleteFolder,
+  updateFolder: dbUpdateFolder,
 } = require("../db/fileQueries");
 
 
@@ -20,7 +22,7 @@ validateFolder = [
   .custom(async (value, { req }) => {
     // check if the root folder's id exists
     console.log("check if the root folder exists: ", value)
-    const folder = await getFolder(value);
+    const folder = await getFolder(req.body.authorId, value);
     if (!folder) {
       throw new Error("Base folder id doesn't exist. DB may be corrupted.");
     }
@@ -30,18 +32,77 @@ validateFolder = [
     max: 255
   })
   .withMessage("The folder name length must not exceed 255 characters.")
+  .custom(async (value, { req }) => {
+    //check if this is a unique name in the current path
+    const folder = await getUniqueFolder(value, req.body["root-folder"], req.body.authorId);
+    if (folder && folder.name !== value) {
+      throw new Error("This folder name already exists.")
+    }
+  })
+]
+
+validateFolderB4Update = [
+  body("folder-name")
+  .trim()
+  .notEmpty()
+  .withMessage("Cannot create a folder with no name.")
+  .isLength({
+    max: 255,
+  })
+  .withMessage("The folder name length must not exceed 255 characters.")
+  .custom(async (value, { req }) => {
+    //check if this is a unique name in the current path
+    const folder = await getUniqueFolder(
+      value,
+      req.body.folderId,
+      req.body.authorId
+    );
+    if (folder && folder.name !== value) {
+      throw new Error("This folder name already exists.");
+    }
+  }),
+];
+updateFolder = [
+  validateFolderB4Update,
+  async (req, res) => {
+    console.log("updateFolder: ", req.body["folder-name"]);
+    
+    const user = res.locals.currentUser;
+    
+    if (user.id !== Number(req.body.authorId)) {
+      req.errors = [{ msg: "Cannot update a folder that is not owned by the current user." }];
+      getFileExplorer(req, res); // the current user should not be modifying someone else's files
+    } else {
+      const errors = validationResult(req);
+      
+      console.log("ERRORS? ", errors);
+      if (!errors.isEmpty()) {
+        req.errors = errors.array();
+        getFileExplorer(req, res);
+      } else {
+        const folder = await dbUpdateFolder(user.id, req.body.parentId, req.body.folderId, req.body["folder-name"]);
+        res.redirect("/file/explorer/" + folder.id);
+      }
+    }
+    
+  }
 ]
 createNewFolder = [
   validateFolder,
   async (req, res) => {
     console.log("in createNewFolder: ", req.body["root-folder"]);
+    
+    
     const user = res.locals.currentUser;
+    if (user.id !== Number(req.body.authorId)) {
+      res.redirect("/"); // the current user should not be modifying someone else's files
+    }
     
     const errors = validationResult(req);
     
     console.log("ERRORS? ", errors);
     if (!errors.isEmpty()) {
-      req.errors = errors;
+      req.errors = errors.array();
       getFileExplorer(req, res);
     } else {
       const paths = await getFolderPath(user.id, [req.body["root-folder"]]);
@@ -56,19 +117,23 @@ createNewFolder = [
 
 
 async function deleteFolder(req, res) {
+  const user = res.locals.currentUser;
   if (req.isAuthenticated()) {
     // check if folder is root. If it is, that's an error
-    const folder = getFolder(req.params.id);
+    const folder = getFolder(user.id, req.params.id);
     if (!folder) {
       req.errors = [{ msg: "Failed to delete this folder as it doesn't exist." }];
       getFileExplorer(req, res);
     } else if (folder.name === '/') {
-      req.errors = [{ msg: "Cannot delete the root path. " }];
+      req.errors = [{ msg: "Cannot delete the root path." }];
       getFileExplorer(req, res);
     } else {
-      await dbDeleteFolder(req.params.id);
-      res.redirect("/file/explorer");
+      console.log("Try to delete the folder: ", req.params.id);
+      const deletedFolder = await dbDeleteFolder(user.id, req.params.id);
+      res.redirect("/file/explorer/"+deletedFolder.parentId);
     }
+  } else {
+    res.redirect("/");
   }
 }
 
@@ -85,7 +150,7 @@ async function getFileExplorer(req, res) {
     
     if (req.params.folderId && (req.params.folderId !== rootFolder.id)) {
       console.log("this is not the root folder that we are about to display")
-      rootFolder = await getFolder(req.params.folderId);
+      rootFolder = await getFolder(user.id, req.params.folderId);
       if (!rootFolder) {
         throw new CustomNotFoundError("The folder cannot be found.");
       }
@@ -102,18 +167,18 @@ async function getFileExplorer(req, res) {
     if (rootFolder.name === '/') {
       isRootFolder = true;
     }
-    const errors = validationResult(req);
+    let errors = validationResult(req);
     if (req.errors) {
-      errors = [...errors, ...req.errors];
+      errors = [...errors.array(), ...req.errors];
     }
     console.log("ERRORS? ", errors);
-
-    if (!errors.isEmpty()) {
+    
+    const paths = await getFolderPath(user.id, [rootFolder.id]);
+    if ((req.errors && errors.length > 0) || (!req.errors && !errors.isEmpty())) {
       
-      res.render("file-explorer", { user, rootFolder, folders, files, isRootFolder, errors });
+      res.render("file-explorer", { user, rootFolder, folders, files, isRootFolder, errors, paths });
     } else {
       
-      const paths = await getFolderPath(user.id, [rootFolder.id]);
       console.log(paths);
       res.render("file-explorer", { user, rootFolder, folders, files, isRootFolder, paths });
     }
@@ -127,4 +192,5 @@ module.exports = {
   getFileExplorer,
   createNewFolder,
   deleteFolder,
+  updateFolder,
 };

@@ -9,147 +9,156 @@
 <body>
   <main>
     <header>
-      <h1>File Uploader App</h1>
+      <div id="burger"><button id="burger-button"><img src="/assets/hamburger_menu.svg" alt=""></button><h1>File Uploader App</h1></div>
       <h2>Welcome <%= user.name %></h2>
+      <div class="burger-menu" id="burger-menu">
+        <ul>
+          <li>
+            <a href=<%= `/logout/` %>>Logout</a>
+          </li>
+        </ul>
+      </div>
     </header>
     <div>
+      
+      <%- include("partials/errors.ejs") %>
       <section>
         
-        <%- include("partials/errors.ejs") %>
         <span title="right-click for details" id="root-folder">
           <img src="/assets/folder.svg" alt="folder">
-          <% paths.forEach(path => { %>
-            <a href=<%= `/file/explorer/${path.id}` %>><%= path.name %></a>
-            <%= (path.name === '/') ? `` : ` /` %>
-          <% }) %>
-        </span>
-        <div id="root-folder-context-menu" class="context-menu" style="display:none">
-          
-          <ul>
-            <li><span>Name:</span> <span><%= rootFolder.name %></span> </li>
-            <li><span>Created:</span> <span><%= rootFolder.createdAt.toLocaleString().slice(0,17) %></span> </li>
-            <li><span>Updated:</span> <span><%= rootFolder.updatedAt.toLocaleString().slice(0,17) || '' %></span> </li>
-            <li><span>Location:</span> <span><%= rootFolder.location || '' %></span></li>
-            <li><span>Shared:</span> <%= rootFolder.shared ? 'yes' : 'no' %> </li>
-            <li><span>Share Expiry:</span> <span><%= rootFolder.shareExpiry || '' %></span> </li>
-          </ul>
-          <ul>
-            <li><button type="button" id="upload-file-here">Upload a file here</button></li>
-            <li><button id="new-folder" type="button">New folder</button></li>
-            <li><a href=<%= `/file/folder/share/${rootFolder.id}` %>>Share this folder</a></li>
-            <% if (!isRootFolder) { %>         
-                <li><a href=<%= `/file/folder/delete/${rootFolder.id}` %>>Delete this folder</a></li>
-            <% } %>
-          </ul>
-        </div>
-      </section>
-      <section id="files-and-folders">
-        <form id="create-new-folder" action="/file/folder/new/" method="post" >
-          <input type="hidden" name="root-folder" value=<%= rootFolder.id %>>
-          <input type="text" name="new-folder" value="New Folder" minlength="1" maxlength="255">
-          <button type="submit"><img src="/assets/create_new_folder.svg" alt="create new folder"></button>
-          <button id="cancel-new-folder"><img src="/assets/close_small_black.svg" alt="close"></button>
-        </form>
-        <form id="upload-file" action="/file/upload/" method="post" >
-          <input type="hidden" name="root-folder" value=<%= rootFolder.id %>>
-          <input type="file" name="upload">
-          <button type="submit"><img src="/assets/upload_file.svg" alt="upload file"></button>
-          <button id="cancel-upload"><img src="/assets/close_small_black.svg" alt="close"></button>
-        </form>
-        <ul class="contents">
-          <% folders.forEach(folder => { %>
-            
-            <li><a href=<%= `/file/explorer/${folder.id}` %> data-id=<%= folder.id %>>
-              <span class="folders" data-id=<%= folder.id %>><img src=<%= folder.shared ? '/assets/folder_shared.svg' : '/assets/folder.svg' %> alt=""><%= folder.name %></span></a>
-            </li>
-            
-            <div id=<%= `folder-context-menu-${folder.id}` %> class="context-menu" style="display:none">
-              
-              <ul>
-                <li><span>Name:</span> <span><%= folder.name %></span> </li>
-                <li><span>Created:</span> <span><%= folder.createdAt.toLocaleString().slice(0,17) %></span> </li>
-                <li><span>Updated:</span> <span><%= folder.updatedAt.toLocaleString().slice(0,17) || '' %></span> </li>
-                <li><span>Location:</span> <span><%= folder.location || '' %></span></li>
-                <li><span>Shared:</span> <%= folder.shared ? 'yes' : 'no' %> </li>
-                <li><span>Share Expiry:</span> <span><%= folder.shareExpiry || '' %></span> </li>
-              </ul>
-              <ul>
-                <li><a href=<%= `/file/folder/share/${folder.id}` %>>Share this folder</a></li>            
-                <li><a href=<%= `/file/folder/delete/${folder.id}` %>>Delete this folder</a></li>
-              </ul>
-            </div>
-            <% }); %>
-            
-          </ul>
-        </section>
-      </div>
-    </main>
-    <script>
-      const newFolderBtn = document.querySelector("#new-folder");
-      const uploadFileHereBtn = document.querySelector("#upload-file-here");
-      const rootFolder = document.querySelector("#root-folder");
-      const createNewFolderForm = document.querySelector("#create-new-folder");
-      const uploadFileForm = document.querySelector("#upload-file");
-      const cancelNewFolderForm = document.querySelector("#cancel-new-folder");
-      const cancelUpload = document.querySelector("#cancel-upload");
-      const filesAndFoldersSection = document.querySelector("#files-and-folders");
-      const allContextMenus = document.querySelectorAll(
-      ".context-menu");
-
-      createNewFolderForm.style.display="none";
-      uploadFileForm.style.display = "none";
-
-      document.onclick = hideAllMenus;
-      
-      function hideAllMenus(e) {
-        allContextMenus.forEach(menu => menu.style.display = "none");
-      }
-      
-      
-      filesAndFoldersSection.addEventListener("contextmenu", (e) => {
-        e.preventDefault();
-        const folderId = e.target.parentNode.dataset.id;
-        
-        let menu = document
-        .querySelector(`#folder-context-menu-${folderId}`);
-        if (menu.style.display == "block") {
-          hideAllMenus();
-        }
-        else {
-          menu.style.display = 'block';
-          menu.style.left = e.pageX + "px";
-          menu.style.top = e.pageY + "px";
-        }
-        
-      })
-      cancelUpload.addEventListener("click", (e) => {
-        e.preventDefault();
-        uploadFileForm.style.display="none";
-      })
-      cancelNewFolderForm.addEventListener("click", (e) => {
-        e.preventDefault();
-        createNewFolderForm.style.display="none";
-      });
-      uploadFileHereBtn.addEventListener("click", (e) => {
-        uploadFileForm.style.display = "grid";
-      })
-      newFolderBtn.addEventListener("click", (e) => {
-        createNewFolderForm.style.display="grid";
-      });
-      rootFolder.addEventListener("contextmenu", (e) => {
-        e.preventDefault()
-        
-        let menu = document
-        .querySelector("#root-folder-context-menu");
-        if (menu.style.display === "block") {
-          hideAllMenus();
-        }
-        else {
-          menu.style.display = 'block';
-          menu.style.left = e.pageX + "px";
-          menu.style.top = e.pageY + "px";
-        }
-      });
-    </script>
-  </body>
-  </html>
+          <% paths.forEach((path,i) => { 
+            if (i === 0 || i < paths.length-1) { %>
+              <a href=<%= `/file/explorer/${path.id}` %>><%= path.name %></a>
+              <%= (path.name === '/') ? `` : ` /` %>
+              <% } else { %>
+                <form action="/file/folder/update" method="post">
+                  <input type="hidden" name="folderId" value=<%= path.id %>>
+                  <input type="hidden" name="authorId" value=<%= user.id %>>
+                  <input type="hidden" name="parentId" value=<%= rootFolder.parentId %>>
+                  <input max-length="255" min-length="1" type="text" name="folder-name" value="<%= path.name %>" size=<%= `${path.name.length}` %>>
+                  <button hidden type="submit">Update name</button>
+                  
+                </form>
+                <% } %>
+                <% }); %>
+              </span>
+              <div id="root-folder-context-menu" class="context-menu">
+                
+                <ul>
+                  <li><span>Name:</span> <span><%= rootFolder.name %></span> </li>
+                  <li><span>Created:</span> <span><%= rootFolder.createdAt.toLocaleString().slice(0,17) %></span> </li>
+                  <li><span>Updated:</span> <span><%= rootFolder.updatedAt.toLocaleString().slice(0,17) || '' %></span> </li>
+                  <li><span>Location:</span> <span>
+                    <%= paths.reduce((acc, el, i) => { 
+                      (i < paths.length-1) ? acc += el.name : acc; 
+                      if ( i > 0 && i < paths.length - 1) { 
+                        acc += '/';
+                      } 
+                      return acc; 
+                    }, "");  %>
+                  </span></li>
+                  <li><span>Shared:</span> <%= rootFolder.shared ? 'yes' : 'no' %> </li>
+                  <li <%= rootFolder.shared ? '' : 'hidden' %> ><span <%= rootFolder.shared ? '' : 'hidden' %>>Share Expiry:</span> <span><%= rootFolder.shareExpiry || '' %></span> </li>
+                </ul>
+                <ul>
+                  <li><button type="button" id="upload-file-here">Upload a file here</button></li>
+                  <li><button id="new-folder" type="button">New folder</button></li>
+                  <li><a href=<%= `/file/folder/share/${rootFolder.id}` %>>Share this folder</a></li>
+                  <% if (!isRootFolder) { %>         
+                    <li><a href=<%= `/file/folder/delete/${rootFolder.id}` %>>Delete this folder</a></li>
+                    <% } %>
+                  </ul>
+                </div>
+              </section>
+              <section id="files-and-folders">
+                <form id="create-new-folder" action="/file/folder/new/" method="post" >
+                  <input type="hidden" name="root-folder" value=<%= rootFolder.id %>>
+                  
+                  <input type="hidden" name="authorId" value=<%= user.id %>>
+                  <input type="text" name="new-folder" value="New Folder" minlength="1" maxlength="255">
+                  <button type="submit"><img src="/assets/create_new_folder.svg" alt="create new folder"></button>
+                  <button id="cancel-new-folder"><img src="/assets/close_small_black.svg" alt="close"></button>
+                </form>
+                <form id="upload-file" action="/file/upload/" method="post" >
+                  
+                  <input type="hidden" name="authorId" value=<%= user.id %>>
+                  <input type="hidden" name="root-folder" value=<%= rootFolder.id %>>
+                  <input type="file" name="upload">
+                  <button type="submit"><img src="/assets/upload_file.svg" alt="upload file"></button>
+                  <button id="cancel-upload"><img src="/assets/close_small_black.svg" alt="close"></button>
+                </form>
+                <ul class="contents">
+                  <% folders.forEach(folder => { %>
+                    
+                    <li><a href=<%= `/file/explorer/${folder.id}` %> data-id=<%= `${folder.id}` %>>
+                      <span class="folders" data-id=<%= `${folder.id}` %>><img src=<%= folder.shared ? '/assets/folder_shared.svg' : '/assets/folder.svg' %> alt="">
+                        <%= `${folder.name}` %></span></a>
+                      </li>
+                      
+                      <% }); %>
+                      
+                    </ul>
+                  </section>
+                </div>
+              </main>
+              <script>
+                const newFolderBtn = document.querySelector("#new-folder");
+                const burgerBtn = document.querySelector("#burger-button");
+                const uploadFileHereBtn = document.querySelector("#upload-file-here");
+                const rootFolder = document.querySelector("#root-folder");
+                const createNewFolderForm = document.querySelector("#create-new-folder");
+                const uploadFileForm = document.querySelector("#upload-file");
+                const cancelNewFolderForm = document.querySelector("#cancel-new-folder");
+                const cancelUpload = document.querySelector("#cancel-upload");
+                const allContextMenus = document.querySelectorAll(".context-menu");
+                const burgerMenu = document.querySelector("#burger-menu");
+                
+                createNewFolderForm.style.display="none";
+                uploadFileForm.style.display = "none";
+                
+                document.onclick = hideAllMenus;
+                
+                function hideAllMenus(e) {
+                  allContextMenus.forEach(menu => menu.style.display = "none");
+                }
+                
+                burgerBtn.addEventListener("click", (e) => {
+                  e.preventDefault();
+                  
+                  burgerMenu.style.display = "block";
+                  
+                  burgerMenu.style.left = e.pageX + "px";
+                  burgerMenu.style.top = e.pageY + "px";
+                  
+                })
+                cancelUpload.addEventListener("click", (e) => {
+                  e.preventDefault();
+                  uploadFileForm.style.display="none";
+                })
+                cancelNewFolderForm.addEventListener("click", (e) => {
+                  e.preventDefault();
+                  createNewFolderForm.style.display="none";
+                });
+                uploadFileHereBtn.addEventListener("click", (e) => {
+                  uploadFileForm.style.display = "grid";
+                })
+                newFolderBtn.addEventListener("click", (e) => {
+                  createNewFolderForm.style.display="grid";
+                });
+                rootFolder.addEventListener("contextmenu", (e) => {
+                  e.preventDefault()
+                  
+                  let menu = document
+                  .querySelector("#root-folder-context-menu");
+                  if (menu.style.display === "block") {
+                    hideAllMenus();
+                  }
+                  else {
+                    menu.style.display = 'block';
+                    menu.style.left = e.pageX + "px";
+                    menu.style.top = e.pageY + "px";
+                  }
+                });
+              </script>
+            </body>
+            </html>
