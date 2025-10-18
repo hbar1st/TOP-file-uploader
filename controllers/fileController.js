@@ -7,6 +7,7 @@ const {
   hasRootFolder,
   getFolder,
   createFolder,
+  createFile,
   getFolderPath,
   getUniqueFolder,
   deleteFolder: dbDeleteFolder,
@@ -26,46 +27,104 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
-uploadFile = [
-  upload.single('upload'),
+const basicAuthorIdCheck = () =>
+  body("authorId")
+.trim()
+.notEmpty()
+.withMessage("An author id must be provided.")
+.isInt({ min: 1 })
+.withMessage("The author id must be a number.")
+
+const basicFolderIdCheck = () =>
+  body("folderId")
+.trim()
+.notEmpty()
+.withMessage("The folder id must be provided.")
+.isInt({ min: 1 })
+.withMessage("The folder id must be a number.");
+
+
+const validateFile = [
+  //check if the root folder exists for this specific user first
+  basicAuthorIdCheck().customSanitizer((value) => Number(value)),
+  basicFolderIdCheck()
+    .customSanitizer((value) => Number(value))
+    .custom(async (value, { req }) => {
+      const folder = await getFolder(req.body.authorId, req.body.folderId);
+      if (!folder) {
+        throw new Error("You don't have permission to upload to this folder.");
+      }
+    }),
+];
+
+
+const uploadFile = [
+  validateFile,
+  (req, res, next) => {
+    const errors = validationResult(req);
+
+    console.log("ERRORS? ", errors);
+    if (!errors.isEmpty()) {
+      getFileExplorer(req, res);
+    }
+    next();
+  },
+  upload.single("upload"),
   async (req, res) => {
     console.log("in uploadFile: ", req.file, req.body);
+    const { folderId, authorId } = req.body;
     const { originalname, size, path } = req.file;
     // req.file is the `avatar` file
     // req.body will hold the text fields, if there were any
-    createFile()
-  }
-]
+    const file = await createFile(authorId, folderId, originalname, size, path);
+    res.redirect("/file/explorer/" + folderId);
+  },
+];
 
 validateFolder = [
+  basicFolderIdCheck().customSanitizer((value) => Number(value)),
   body("root-folder")
   .trim()
   .notEmpty()
-  .withMessage("Base folder is undefined. Cannot create a folder with no parent.")
+  .withMessage(
+    "Base folder is undefined. Cannot create a folder with no parent."
+  )
+  .isInt({ min: 1 })
+  .withMessage("The folder id must be a number.")
+  .customSanitizer((value) => Number(value))
   .custom(async (value, { req }) => {
     // check if the root folder's id exists
-    console.log("check if the root folder exists: ", value)
+    console.log("check if the root folder exists: ", value);
     const folder = await getFolder(req.body.authorId, value);
     if (!folder) {
       throw new Error("Base folder id doesn't exist. DB may be corrupted.");
     }
   }),
-  body("new-folder").trim().notEmpty().withMessage("Cannot create a folder with no name.")
+  body("new-folder")
+  .trim()
+  .notEmpty()
+  .withMessage("Cannot create a folder with no name.")
   .isLength({
-    max: 255
+    max: 255,
   })
   .withMessage("The folder name length must not exceed 255 characters.")
   .custom(async (value, { req }) => {
     console.log("check if this is a unique name in the current path");
-    const folder = await getUniqueFolder(value, req.body["root-folder"], req.body.authorId);
-    console.log("retrieved folder: ", folder);
+    const folder = await getUniqueFolder(
+      value,
+      req.body["root-folder"],
+      req.body.authorId
+    );
+    console.log("in validation process - retrieved folder: ", folder);
     if (folder) {
       throw new Error(`This folder name, "${value}", already exists.`);
     }
-  })
-]
+  }),
+];
 
 validateFolderB4Update = [
+  basicAuthorIdCheck().customSanitizer((value) => Number(value)),
+  basicFolderIdCheck().customSanitizer((value) => Number(value)),
   body("folder-name")
   .trim()
   .notEmpty()
@@ -86,6 +145,7 @@ validateFolderB4Update = [
     }
   }),
 ];
+
 updateFolder = [
   validateFolderB4Update,
   async (req, res) => {
@@ -93,8 +153,12 @@ updateFolder = [
     
     const user = res.locals.currentUser;
     
-    if (user.id !== Number(req.body.authorId)) {
-      req.errors = [{ msg: "Cannot update a folder that is not owned by the current user." }];
+    if (user.id !== req.body.authorId) {
+      req.errors = [
+        {
+          msg: "Cannot update a folder that is not owned by the current user.",
+        },
+      ];
       getFileExplorer(req, res); // the current user should not be modifying someone else's files
     } else {
       const errors = validationResult(req);
@@ -104,13 +168,18 @@ updateFolder = [
         //req.errors = errors.array();
         getFileExplorer(req, res);
       } else {
-        const folder = await dbUpdateFolder(user.id, req.body.parentId, req.body.folderId, req.body["folder-name"]);
+        const folder = await dbUpdateFolder(
+          user.id,
+          req.body.parentId,
+          req.body.folderId,
+          req.body["folder-name"]
+        );
         res.redirect("/file/explorer/" + folder.id);
       }
     }
-    
-  }
-]
+  },
+];
+
 createNewFolder = [
   validateFolder,
   async (req, res) => {
@@ -182,9 +251,9 @@ async function getFileExplorer(req, res) {
     console.log("rootFolder row: ", rootFolder);
     let files = await getFiles(user.id, rootFolder.id);
     
-    console.log("retrieved files: ", files);
+    console.log("in getFileExplorere - retrieved files: ", files);
     let folders = await getFolders(user.id, rootFolder.id);
-    console.log("retrieved folders: ", folders);
+    console.log("in getFileExplorer - retrieved folders: ", folders);
     console.log("root folder: ", rootFolder);
     
     let isRootFolder = false;

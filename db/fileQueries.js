@@ -41,10 +41,27 @@ async function hasRootFolder(authorId) {
   return rootFolder;
 }
 
-async function createFolder(authorId, parentId, name, pathArr) {
+function createFile(authorId, parentId, name, size, location) {
+  console.log("in createFile: ", authorId, parentId, name, size, location);
+
+  const file = prisma.file.create({
+    data: {
+      createdAt: new Date(),
+      authorId: Number(authorId),
+      parentId: Number(parentId),
+      pathArr: [Number(parentId)],
+      size,
+      location,
+      name
+    }
+  });
+  return file;
+}
+
+function createFolder(authorId, parentId, name, pathArr) {
   console.log("in createFolder: ", authorId, parentId, name, pathArr);
   
-  const newFolder = await prisma.folder.create({
+  const newFolder = prisma.folder.create({
     data: {
       createdAt: new Date(),
       name,
@@ -164,6 +181,7 @@ module.exports = {
   hasRootFolder,
   getFolder,
   createFolder,
+  createFile,
   getFolderPath,
   deleteFolder,
   getUniqueFolder,

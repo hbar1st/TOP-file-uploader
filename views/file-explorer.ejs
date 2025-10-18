@@ -82,7 +82,7 @@
                 <form id="upload-file" action="/file/upload/" method="post" enctype="multipart/form-data">
                   
                   <input type="hidden" name="authorId" value=<%= user.id %>>
-                  <input type="hidden" name="root-folder" value=<%= rootFolder.id %>>
+                  <input type="hidden" name="folderId" value=<%= rootFolder.id %>>
                   <input type="file" name="upload">
                   <button type="submit"><img src="/assets/upload_file.svg" alt="upload file"></button>
                   <button id="cancel-upload"><img src="/assets/close_small_black.svg" alt="close"></button>
