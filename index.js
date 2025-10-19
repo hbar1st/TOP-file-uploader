@@ -5,9 +5,9 @@ var morgan = require("morgan");
 const pino = require("pino-http")();
 */
 
-const cors = require("cors");
+const cors = require('cors')
 
-const cloudinary = require("cloudinary").v2;
+const cloudinary = require('cloudinary').v2
 
 // setup prisma-session-store to hold the session data
 const session = require('express-session')
@@ -17,7 +17,7 @@ const { PrismaClient } = require('./generated/prisma')
 const passport = require('./middleware/passport')
 
 const path = require('node:path')
-require('dotenv').config();
+require('dotenv').config()
 
 const app = express()
 
@@ -39,25 +39,22 @@ app.use(express.static(assetsPath))
 app.use(express.urlencoded({ extended: true })) // used to parse form body
 // Return "https" URLs by setting secure: true
 
+async function setupCloudinary () {
+  console.log('Setting up Cloudinary')
 
-async function setupCloudinary() {
-  console.log("Setting up Cloudinary")
-  
   await cloudinary.config({
     cloud_name: process.env.CLOUDINARY_NAME,
     api_key: process.env.CLOUDINARY_API_KEY,
-    api_secret: process.env.CLOUDINARY_API_SECRET,
-  });
-  
+    api_secret: process.env.CLOUDINARY_API_SECRET
+  })
+
   // Log the configuration
-  console.log(cloudinary.config());
+  console.log(cloudinary.config())
 }
 
-setupCloudinary();
+setupCloudinary()
 
-
-
-app.use(cors()); 
+app.use(cors())
 
 const MS_IN_24_HRS = 1000 * 60 * 60 * 24 // 24 hours in milliseconds
 
@@ -92,7 +89,6 @@ app.use((req, res, next) => {
   next()
 })
 
-
 const userRouter = require('./routers/userRouter')
 app.use('/', userRouter)
 
@@ -118,8 +114,7 @@ app.use((err, req, res, next) => {
     res.status(500)
   }
   // Send a user-friendly error message to the client
-  res.render('500', { statuscode: req.statusCode , errors: err })
-
+  res.render('500', { statuscode: req.statusCode, errors: err })
 })
 
 const port = process.env.PORT || 3000

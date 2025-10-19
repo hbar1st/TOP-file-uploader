@@ -107,7 +107,7 @@
                       </section>
                     </div>
                     
-                    <div id="uploadStatus">
+                    <div id="upload-status">
                       <p>Uploading file, please wait…</p>
                     </div>
                     
@@ -124,11 +124,20 @@
                     const cancelUpload = document.querySelector("#cancel-upload");
                     const allContextMenus = document.querySelectorAll(".context-menu");
                     const burgerMenu = document.querySelector("#burger-menu");
-                    const status = document.querySelector('#uploadStatus');
+                    const status = document.querySelector('#upload-status');
                     const errors = document.querySelector('.errors');
-                    
+                    const menu = document
+                    .querySelector("#root-folder-context-menu");
                     window.addEventListener('load', () => {
                       status.style.display = 'none';
+                    })
+                    
+                    rootFolder.addEventListener('click', (e) => {
+                      if ( e.target.id === "root-folder") {
+                        menu.style.display = 'block';
+                        menu.style.left = e.pageX + "px";
+                        menu.style.top = e.pageY + "px";
+                      }
                     })
                     uploadFileForm.addEventListener('submit', function () {
                       hideAllMenus();
@@ -141,7 +150,9 @@
                     document.onclick = hideAllMenus;
                     
                     function hideAllMenus(e) {
-                      allContextMenus.forEach(menu => menu.style.display = "none");
+                      if ( e.target.id !== "root-folder") {
+                        allContextMenus.forEach(menu => menu.style.display = "none");
+                      }
                     }
                     
                     burgerBtn.addEventListener("click", (e) => {
@@ -171,8 +182,6 @@
                     rootFolder.addEventListener("contextmenu", (e) => {
                       e.preventDefault()
                       
-                      let menu = document
-                      .querySelector("#root-folder-context-menu");
                       if (menu.style.display === "block") {
                         hideAllMenus();
                       }

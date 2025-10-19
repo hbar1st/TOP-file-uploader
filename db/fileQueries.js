@@ -25,8 +25,16 @@ async function hasRootFolder (authorId) {
   return rootFolder
 }
 
-function createFile (authorId, parentId, name, size, location, pathArr) {
-  console.log('in createFile: ', authorId, parentId, name, size, location)
+function createFile (
+  authorId,
+  parentId,
+  name,
+  size,
+  publicId,
+  resourceType,
+  pathArr
+) {
+  console.log('in createFile: ', authorId, parentId, name, size, publicId, resourceType, pathArr)
 
   const file = prisma.file.create({
     data: {
@@ -35,8 +43,9 @@ function createFile (authorId, parentId, name, size, location, pathArr) {
       parentId: Number(parentId),
       pathArr,
       size,
-      location,
-      name
+      publicId,
+      name,
+      resource_type: resourceType
     }
   })
   return file
@@ -106,15 +115,15 @@ function getFolder (authorId, id) {
   return folder
 }
 
-function deleteFileById(authorId, id) {
-  console.log("in deleteFile: ", authorId, id);
+function deleteFileById (authorId, id) {
+  console.log('in deleteFile: ', authorId, id)
   const deletedFile = prisma.file.delete({
     where: {
       authorId: Number(authorId),
       id: Number(id)
     }
   })
-  return deletedFile;
+  return deletedFile
 }
 function deleteFolder (authorId, id) {
   console.log('in deleteFolder: ', authorId, id)
@@ -205,5 +214,5 @@ module.exports = {
   deleteFolder,
   getUniqueFolder,
   updateFolder,
-  deleteFileById,
+  deleteFileById
 }

@@ -4,7 +4,7 @@ const fileRouter = Router()
 
 const {
   getFileExplorer, getFileDetails, uploadFile, deleteFile,
-  updateFolder, createNewFolder, deleteFolder,
+  updateFolder, createNewFolder, deleteFolder
 } = require('../controllers/fileController')
 
 function protectRoute (req, res, next) {
@@ -29,6 +29,6 @@ fileRouter.get('/delete/:id', protectRoute, deleteFile)
 
 fileRouter.get('/*splat', protectRoute, getFileExplorer)
 
-fileRouter.post("/*splat", protectRoute, getFileExplorer);
+fileRouter.post('/*splat', protectRoute, getFileExplorer)
 
 module.exports = fileRouter

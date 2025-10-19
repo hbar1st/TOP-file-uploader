@@ -141,6 +141,16 @@ button, img {
   user-select: none;
 }
 
+#upload-status {
+    display: none;
+    padding: 1rem;
+    margin: 1rem;
+    justify-content: center;
+    background-color: chartreuse;
+    font-size: larger;
+    font-weight: 600;
+    color: #1806ba;
+}
 
 .folders {
   display: flex;
@@ -273,13 +283,3 @@ button, img {
     }
 */
 
-#upload-status {
-  display: none;
-
-  width: 100vw;
-  flex-direction: row;
-  justify-content: center;
-  align-items: center;
-  font-size: 3rem;
-  color: blue;
-}
