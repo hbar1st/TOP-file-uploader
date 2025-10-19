@@ -25,8 +25,10 @@ fileRouter.get('/folder/delete/:id', protectRoute, deleteFolder)
 
 fileRouter.post('/upload', protectRoute, uploadFile)
 
-fileRouter.get('/delete/:id', protectRoute, setupCloud, deleteFile)
+fileRouter.get('/delete/:id', protectRoute, deleteFile)
 
-//fileRouter.get('/', protectRoute, getFileExplorer)
+fileRouter.get('/*splat', protectRoute, getFileExplorer)
+
+fileRouter.post("/*splat", protectRoute, getFileExplorer);
 
 module.exports = fileRouter

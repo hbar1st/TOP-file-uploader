@@ -106,6 +106,12 @@
                         </ul>
                       </section>
                     </div>
+                    
+                    <div id="uploadStatus">
+                      <p>Uploading file, please wait…</p>
+                    </div>
+                    
+                    
                   </main>
                   <script>
                     const newFolderBtn = document.querySelector("#new-folder");
@@ -118,6 +124,16 @@
                     const cancelUpload = document.querySelector("#cancel-upload");
                     const allContextMenus = document.querySelectorAll(".context-menu");
                     const burgerMenu = document.querySelector("#burger-menu");
+                    const status = document.querySelector('#uploadStatus');
+                    const errors = document.querySelector('.errors');
+                    
+                    window.addEventListener('load', () => {
+                      status.style.display = 'none';
+                    })
+                    uploadFileForm.addEventListener('submit', function () {
+                      hideAllMenus();
+                      status.style.display = 'flex'; // Show the message
+                    });
                     
                     createNewFolderForm.style.display="none";
                     uploadFileForm.style.display = "none";
@@ -147,6 +163,7 @@
                     });
                     uploadFileHereBtn.addEventListener("click", (e) => {
                       uploadFileForm.style.display = "grid";
+                      
                     })
                     newFolderBtn.addEventListener("click", (e) => {
                       createNewFolderForm.style.display="grid";

@@ -40,7 +40,9 @@ form {
     padding: 5px;
   }
 }
-
+input {
+  padding-left: 1ch;
+}
 
 input:invalid {
   border: 1px solid red;

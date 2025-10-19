@@ -10,10 +10,13 @@
         </style>
     </head>
     <body>
-        <h1>500 - Internal Server Error</h1>
+        <h1><%= statuscode %> - Internal Server Error</h1>
         <p>Something went wrong on our end. Please try again later.</p>
-        <% if (error && process.env.NODE_ENV !== 'production') { %>
-            <pre><%= error.stack %></pre>
+        <% if (locals.error && process.env.NODE_ENV !== 'production') { %>
+            
+            <p><%= locals.error.msg %></p>
+            <hr>
+            <pre><%= locals.error.stack %></pre>
         <% } %>
     </body>
     </html>

@@ -272,3 +272,14 @@ button, img {
       background: #21a99254;
     }
 */
+
+#upload-status {
+  display: none;
+
+  width: 100vw;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  font-size: 3rem;
+  color: blue;
+}

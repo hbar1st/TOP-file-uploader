@@ -1,10 +1,13 @@
 const express = require('express')
 const crypto = require('crypto')
+/*
 var morgan = require("morgan");
-
 const pino = require("pino-http")();
+*/
 
-//const cors = require("cors");
+const cors = require("cors");
+
+const cloudinary = require("cloudinary").v2;
 
 // setup prisma-session-store to hold the session data
 const session = require('express-session')
@@ -14,13 +17,15 @@ const { PrismaClient } = require('./generated/prisma')
 const passport = require('./middleware/passport')
 
 const path = require('node:path')
-require('dotenv').config()
+require('dotenv').config();
 
 const app = express()
 
 // add some loggers
+/*
 app.use(morgan("combined"));
 app.use(pino);
+*/
 
 // setup ejs for templating views
 // eslint-disable-next-line no-undef
@@ -32,7 +37,27 @@ app.set('view engine', 'ejs')
 const assetsPath = path.join(__dirname, 'public')
 app.use(express.static(assetsPath))
 app.use(express.urlencoded({ extended: true })) // used to parse form body
-//app.use(cors()); 
+// Return "https" URLs by setting secure: true
+
+
+async function setupCloudinary() {
+  console.log("Setting up Cloudinary")
+  
+  await cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
+  });
+  
+  // Log the configuration
+  console.log(cloudinary.config());
+}
+
+setupCloudinary();
+
+
+
+app.use(cors()); 
 
 const MS_IN_24_HRS = 1000 * 60 * 60 * 24 // 24 hours in milliseconds
 
@@ -67,6 +92,7 @@ app.use((req, res, next) => {
   next()
 })
 
+
 const userRouter = require('./routers/userRouter')
 app.use('/', userRouter)
 
@@ -88,17 +114,12 @@ app.use((err, req, res, next) => {
     console.log('user tried to do something without being authenticated, tell them!')
   }
   console.error('in the catch-all: ', err)
-  res.status(500)
+  if (res.statusCode < 400) {
+    res.status(500)
+  }
   // Send a user-friendly error message to the client
-  res.render('500', { error: err })
-  /*
-  res.json({
-    message: "Internal Server Error, check the server logs.",
-    // In development, you might send the full error stack for debugging
-    error: process.env.NODE_ENV === "development" ? err : {},
-    cause: process.env.NODE_ENV === "development" ? err.cause : {},
-  });
-  */
+  res.render('500', { statuscode: req.statusCode , errors: err })
+
 })
 
 const port = process.env.PORT || 3000

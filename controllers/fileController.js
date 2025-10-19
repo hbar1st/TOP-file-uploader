@@ -21,56 +21,27 @@ const {
 
 // const { user } = require("../middleware/prisma");
 
-// Return "https" URLs by setting secure: true
-async function setupCloud() {
-  await cloudinary.config({
-    secure: true
-  });
-  
-  // Log the configuration
-  console.log(cloudinary.config());
-
-  const result = await cloudinary.api
-    .create_upload_preset({
-      name: "file_preset",
-      sign_url: true,
-      use_filename: true,
-      unique_filename: true,
-      resource_type: "auto",
-      overwrite: false,
-      type: "authenticated",
-      asset_folder: "TOP-file-uploader-app",
-    })
-    console.log(result);
-}
 
 const multer = require('multer')
-const storage = multer.diskStorage({
-  storage: (req, file, cb) => {
-    cb(null, 'uploads/')
-  },
-  limits: {
-    fileSize: 52428800, // 50 * 1024 * 1024 
-    files: 1
-  },
-  filename: (req, file, cb) => {
-    cb(null, file.originalname)
-  },
-  fileFilter: function (req, file, cb) {
-    if (file.mimetype.startsWith('video')) {
-      if (file.size > 52428800) {
-        return cb(new Error("Video files should not exceed 50MB."));
-      }
-    } else {
-      if (file.size > (10 * 1024 * 1024)) {
-        return cb(new Error('Non-video files should not exceed 10MB.'))
-      }
-    }
-    cb(null, true)
-  }
-})
 
-const upload = multer({ storage })
+const storage = multer.memoryStorage();
+/*
+multer.diskStorage({
+storage: (req, file, cb) => {
+  cb(null, 'uploads/')
+},
+filename: (req, file, cb) => {
+  cb(null, file.originalname)
+}
+})*/
+
+const upload = multer({
+  storage,
+  limits: {
+    fileSize: 52428800, // 50 * 1024 * 1024
+    files: 1,
+  },
+});
 
 function basicFileIdCheck (value) {
   return value.trim().notEmpty().withMessage('A file id must be provided.')
@@ -114,8 +85,6 @@ const validateFile = [
   })
 ]
 
-const { unlinkSync } = require("fs")
-
 const deleteFile = [
   
   async (req, res, next) => {
@@ -126,7 +95,7 @@ const deleteFile = [
       const file = await getFileById(req.params.id)
       if (file.authorId === user.id) {
         try {
-          unlinkSync(`${file.location}`)
+          // unlinkSync(`${file.location}`)
           
           console.log(`${file.location}/${file.name} was deleted`)
           const delfile = await deleteFileById(user.id,req.params.id)
@@ -146,11 +115,15 @@ const deleteFile = [
 const uploadFile = [
   (req, res, next) => {
     upload.single('upload')(req, res, function (err) {
+      console.log("should have uploaded unless there was an error?")
       if (err instanceof multer.MulterError) {
         // A Multer error occurred (e.g., file size limit exceeded)
-        console.log(err.message);
+        console.log("Multer error: " , err.message);
         //return res.status(400).send({ message: err.message, code: err.code })
-        next(err);
+        req.params.folderId = req.body.folderId;
+        req.errors = [{ msg: err.message }, {msg: "Note that 10MB is max size for non video fies and 50MB is the max for videos."}];
+        return getFileExplorer(req, res);
+        
       } else if (err) {
         // An unknown error occurred
         return res.status(500).send({ message: 'An unknown error occurred.' })
@@ -160,53 +133,78 @@ const uploadFile = [
   },
   validateFile,
   (req, res, next) => {
+    
     const errors = validationResult(req)
     
     console.log('ERRORS? ', errors)
-    if (!errors.isEmpty()) {
-      getFileExplorer(req, res)
+    if (!errors.isEmpty() || req.errors) {
+      return getFileExplorer(req, res)
     } else {
       next()
     }
   },
-  async (req, res) => {
+  async (req, res, next) => {
+    if (req.errors) {
+      next();
+    }
     console.log('in uploadFile: ', req.file, req.body)
     if (!req.file) {
-      return res.status(400).send('Review Logs: No file uploaded.')
+      req.errors = [{ msg: 'Review Logs: No file uploaded.' }]
+      return getFileExplorer(req, res);
     } else {
-      console.log('file: ', req.file.mimetype)
+      console.log('file mimetype: ', req.file.mimetype)
+      
+      if (req.file.mimetype.startsWith("video")) {
+        if (req.file.size > 52428800) {
+          throw new Error("Video files should not exceed 50MB.");
+        }
+      } else {
+        if (req.file.size > 10 * 1024 * 1024) {
+          throw new Error("Non-video files should not exceed 10MB.");
+        }
+      }
     }
     const { folderId } = req.body
-    const { originalname, size, path } = req.file
+    const { originalname, size } = req.file
     const user = res.locals.currentUser
     
-
-    const uploadFile = async (filePath) => {
-      // Use the uploaded file's name as the asset's public ID and
-      // allow overwriting the asset with new versions
-      const options = {
-        use_filename: true,
-        unique_filename: false,
-        overwrite: true,
-        upload_preset: "file_preset",
-      };
-
-      try {
-        // Upload the image
-        const result = await cloudinary.v2.uploader.upload(filePath, options);
-        console.log(result);
-        return result.secure_url;
-      } catch (error) {
-        console.error(error);
-      }
-    };
-    const url = uploadFile(path);
+    console.log("file details from multer: ", req.file);
     
-    const file = await createFile(user.id, folderId, originalname, size, url, [
-      ...req.parentFolder.pathArr,
-      folderId,
-    ]);
-    res.redirect('/file/explorer/' + file.parentId)
+    const options = {
+      use_filename: true,
+      overwrite: true,
+      sign_url: true,
+      unique_filename: true,
+      resource_type: "auto",
+      type: "authenticated",
+      folder: "TOP-file-uploader-app",
+    };
+    
+    try {
+      
+      const uploadResult = await new Promise((resolve, reject) => {
+        cloudinary.uploader
+        .upload_stream(options, (error, uploadResult) => {
+          if (error) {
+            return reject(error);
+          }
+          return resolve(uploadResult);
+        })
+        .end(req.file.buffer);
+      });
+
+      console.log("uploadResult: ", uploadResult);
+      const file = await createFile(user.id, folderId, originalname, size, uploadResult.public_id, [
+        ...req.parentFolder.pathArr,
+        folderId,
+      ]);
+      
+      res.redirect("/file/explorer/" + file.parentId);
+    } catch (error) {
+      console.log("in uploadFile: found an error during upload?")
+      console.error(error);
+      next(error);
+    }
   }
 ]
 
@@ -288,14 +286,14 @@ const updateFolder = [
           msg: 'Cannot update a folder that is not owned by the current user.'
         }
       ]
-      getFileExplorer(req, res) // the current user should not be modifying someone else's files
+      return getFileExplorer(req, res) // the current user should not be modifying someone else's files
     } else {
       const errors = validationResult(req)
       
       console.log('ERRORS? ', errors)
       if (!errors.isEmpty()) {
         // req.errors = errors.array();
-        getFileExplorer(req, res)
+        return getFileExplorer(req, res)
       } else {
         const folder = await dbUpdateFolder(
           user.id,
@@ -323,7 +321,7 @@ const createNewFolder = [
     
     console.log('ERRORS? ', errors)
     if (!errors.isEmpty()) {
-      getFileExplorer(req, res)
+      return getFileExplorer(req, res)
     } else {
       const paths = await getFolderPath(user.id, [req.body['root-folder']])
       console.log('paths retrieved: ', paths)
@@ -342,10 +340,10 @@ async function deleteFolder (req, res) {
     const folder = getFolder(user.id, req.params.id)
     if (!folder) {
       req.errors = [{ msg: "Failed to delete this folder as it doesn't exist." }]
-      getFileExplorer(req, res)
+      return getFileExplorer(req, res)
     } else if (folder.name === '/') {
       req.errors = [{ msg: 'Cannot delete the root path.' }]
-      getFileExplorer(req, res)
+      return getFileExplorer(req, res)
     } else {
       console.log('Try to delete the folder: ', req.params.id)
       const deletedFolder = await dbDeleteFolder(user.id, req.params.id)
@@ -425,7 +423,7 @@ async function getFileExplorer (req, res) {
     } else {
       errors = errors.array()
     }
-    console.log('ERRORS? ', errors)
+    console.log('file-explorer ERRORS? ', errors)
     
     const paths = await getFolderPath(user.id, [rootFolder.id])
     if (errors.length > 0) {
@@ -440,7 +438,6 @@ async function getFileExplorer (req, res) {
 }
 
 module.exports = {
-  setupCloud,
   getFileExplorer,
   getFileDetails,
   createNewFolder,
