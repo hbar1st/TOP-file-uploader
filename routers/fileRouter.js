@@ -4,7 +4,7 @@ const fileRouter = Router()
 
 const {
   getFileExplorer, getFileDetails, uploadFile, deleteFile,
-  updateFolder, createNewFolder, deleteFolder, setupCloud,
+  updateFolder, createNewFolder, deleteFolder,
 } = require('../controllers/fileController')
 
 function protectRoute (req, res, next) {
