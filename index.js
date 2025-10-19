@@ -1,7 +1,10 @@
 const express = require('express')
 const crypto = require('crypto')
+var morgan = require("morgan");
 
-const cors = require("cors");
+const pino = require("pino-http")();
+
+//const cors = require("cors");
 
 // setup prisma-session-store to hold the session data
 const session = require('express-session')
@@ -15,6 +18,10 @@ require('dotenv').config()
 
 const app = express()
 
+// add some loggers
+app.use(morgan("combined"));
+app.use(pino);
+
 // setup ejs for templating views
 // eslint-disable-next-line no-undef
 app.set('views', path.join(__dirname, 'views'))
@@ -25,7 +32,7 @@ app.set('view engine', 'ejs')
 const assetsPath = path.join(__dirname, 'public')
 app.use(express.static(assetsPath))
 app.use(express.urlencoded({ extended: true })) // used to parse form body
-app.use(cors()); 
+//app.use(cors()); 
 
 const MS_IN_24_HRS = 1000 * 60 * 60 * 24 // 24 hours in milliseconds
 

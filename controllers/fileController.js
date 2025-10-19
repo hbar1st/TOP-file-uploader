@@ -22,26 +22,30 @@ const {
 // const { user } = require("../middleware/prisma");
 
 // Return "https" URLs by setting secure: true
-cloudinary.config({
-  secure: true
-});
-cloudinary.v2.api
-  .create_upload_preset({
-    name: "file_preset",
-    sign_url: true,
-    use_filename: true,
-    unique_filename: true,
-    resource_type: "auto",
-    overwrite: false,
-    type: "authenticated",
-    asset_folder: "TOP-file-uploader-app",
-  })
-  .then((result) => console.log(result));
-// Log the configuration
-console.log(cloudinary.config());
+async function setupCloud() {
+  await cloudinary.config({
+    secure: true
+  });
+  
+  // Log the configuration
+  console.log(cloudinary.config());
+
+  const result = await cloudinary.api
+    .create_upload_preset({
+      name: "file_preset",
+      sign_url: true,
+      use_filename: true,
+      unique_filename: true,
+      resource_type: "auto",
+      overwrite: false,
+      type: "authenticated",
+      asset_folder: "TOP-file-uploader-app",
+    })
+    console.log(result);
+}
 
 const multer = require('multer')
-const storage = multer.memoryStorage({
+const storage = multer.diskStorage({
   storage: (req, file, cb) => {
     cb(null, 'uploads/')
   },
@@ -189,7 +193,7 @@ const uploadFile = [
 
       try {
         // Upload the image
-        const result = await cloudinary.uploader.upload(filePath, options);
+        const result = await cloudinary.v2.uploader.upload(filePath, options);
         console.log(result);
         return result.secure_url;
       } catch (error) {
@@ -436,6 +440,7 @@ async function getFileExplorer (req, res) {
 }
 
 module.exports = {
+  setupCloud,
   getFileExplorer,
   getFileDetails,
   createNewFolder,

@@ -7,7 +7,7 @@
     "build": "prisma migrate reset -f",
     "prisma:generate": "prisma generate",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon index.js"
+    "start": "DEBUG=express:*; nodemon index.js"
   },
   "repository": {
     "type": "git",
@@ -50,11 +50,13 @@
     "express": "^5.1.0",
     "express-session": "^1.18.2",
     "express-validator": "^7.2.1",
+    "morgan": "^1.10.1",
     "multer": "^2.0.2",
     "nodemon": "^3.1.10",
     "passport": "^0.7.0",
     "passport-local": "^1.0.0",
     "pg": "^8.16.3",
+    "pino-http": "^11.0.0",
     "standard": "^17.1.2"
   }
 }

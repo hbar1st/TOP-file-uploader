@@ -4,7 +4,7 @@ const userRouter = Router()
 
 const { getLoginForm, signUp, authenticate } = require('../controllers/userController')
 
-userRouter.get('/', (req, res) => getLoginForm({ newUser: true, ...req }, res))
+userRouter.get('/', (req, res, next) => { console.log("in the router"); next(); },(req, res) => getLoginForm({ newUser: true, ...req }, res))
 
 userRouter
   .route('/sign-up')
