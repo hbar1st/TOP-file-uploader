@@ -100,7 +100,7 @@ const deleteFile = [
           const delfile = await deleteFileById(user.id, req.params.id)
 
           // the location field has the cloudinary file's folder and publicid in it
-          const result = await cloudinary.uploader.destroy(delfile.location, {
+          const result = await cloudinary.uploader.destroy(delfile.publicId, {
             resource_type: delfile.resource_type,
             type: 'authenticated'
           })
