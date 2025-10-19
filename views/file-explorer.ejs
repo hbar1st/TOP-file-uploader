@@ -46,8 +46,8 @@
                 
                 <ul>
                   <li><span>Name:</span> <span><%= rootFolder.name %></span> </li>
-                  <li><span>Created:</span> <span><%= rootFolder.createdAt.toLocaleString().slice(0,17) %></span> </li>
-                  <li><span>Updated:</span> <span><%= rootFolder.updatedAt.toLocaleString().slice(0,17) || '' %></span> </li>
+                  <li><span>Created:</span> <span><%= new Date(rootFolder.createdAt).toLocaleString().slice(0,16) %></span> </li>
+                  <li><span>Updated:</span> <span><%= new Date(rootFolder.updatedAt).toLocaleString().slice(0,16) || '' %></span> </li>
                   <li><span>Location:</span> <span>
                     <%= paths.reduce((acc, el, i) => { 
                       (i < paths.length-1) ? acc += el.name : acc; 
@@ -80,7 +80,6 @@
                   <button id="cancel-new-folder"><img src="/assets/close_small_black.svg" alt="close"></button>
                 </form>
                 <form id="upload-file" action="/file/upload/" method="post" enctype="multipart/form-data">
-                  
                   <input type="hidden" name="authorId" value=<%= user.id %>>
                   <input type="hidden" name="folderId" value=<%= rootFolder.id %>>
                   <input type="file" name="upload">
@@ -96,69 +95,76 @@
                       </li>
                       
                       <% }); %>
+                      <% files.forEach(file => { %>
+                        
+                        <li><a href=<%= `/file/details/${rootFolder.id}/${file.id}` %> data-id=<%= `${file.id}` %>>
+                          <span class="file" data-id=<%= `${file.id}` %>><img src=<%= file.shared ? '/assets/file.svg' : '/assets/file.svg' %> alt="">
+                            <%= `${file.name}` %></span></a>
+                          </li>
+                          
+                          <% }); %>
+                        </ul>
+                      </section>
+                    </div>
+                  </main>
+                  <script>
+                    const newFolderBtn = document.querySelector("#new-folder");
+                    const burgerBtn = document.querySelector("#burger-button");
+                    const uploadFileHereBtn = document.querySelector("#upload-file-here");
+                    const rootFolder = document.querySelector("#root-folder");
+                    const createNewFolderForm = document.querySelector("#create-new-folder");
+                    const uploadFileForm = document.querySelector("#upload-file");
+                    const cancelNewFolderForm = document.querySelector("#cancel-new-folder");
+                    const cancelUpload = document.querySelector("#cancel-upload");
+                    const allContextMenus = document.querySelectorAll(".context-menu");
+                    const burgerMenu = document.querySelector("#burger-menu");
+                    
+                    createNewFolderForm.style.display="none";
+                    uploadFileForm.style.display = "none";
+                    
+                    document.onclick = hideAllMenus;
+                    
+                    function hideAllMenus(e) {
+                      allContextMenus.forEach(menu => menu.style.display = "none");
+                    }
+                    
+                    burgerBtn.addEventListener("click", (e) => {
+                      e.preventDefault();
                       
-                    </ul>
-                  </section>
-                </div>
-              </main>
-              <script>
-                const newFolderBtn = document.querySelector("#new-folder");
-                const burgerBtn = document.querySelector("#burger-button");
-                const uploadFileHereBtn = document.querySelector("#upload-file-here");
-                const rootFolder = document.querySelector("#root-folder");
-                const createNewFolderForm = document.querySelector("#create-new-folder");
-                const uploadFileForm = document.querySelector("#upload-file");
-                const cancelNewFolderForm = document.querySelector("#cancel-new-folder");
-                const cancelUpload = document.querySelector("#cancel-upload");
-                const allContextMenus = document.querySelectorAll(".context-menu");
-                const burgerMenu = document.querySelector("#burger-menu");
-                
-                createNewFolderForm.style.display="none";
-                uploadFileForm.style.display = "none";
-                
-                document.onclick = hideAllMenus;
-                
-                function hideAllMenus(e) {
-                  allContextMenus.forEach(menu => menu.style.display = "none");
-                }
-                
-                burgerBtn.addEventListener("click", (e) => {
-                  e.preventDefault();
-                  
-                  burgerMenu.style.display = "block";
-                  
-                  burgerMenu.style.left = e.pageX + "px";
-                  burgerMenu.style.top = e.pageY + "px";
-                  
-                })
-                cancelUpload.addEventListener("click", (e) => {
-                  e.preventDefault();
-                  uploadFileForm.style.display="none";
-                })
-                cancelNewFolderForm.addEventListener("click", (e) => {
-                  e.preventDefault();
-                  createNewFolderForm.style.display="none";
-                });
-                uploadFileHereBtn.addEventListener("click", (e) => {
-                  uploadFileForm.style.display = "grid";
-                })
-                newFolderBtn.addEventListener("click", (e) => {
-                  createNewFolderForm.style.display="grid";
-                });
-                rootFolder.addEventListener("contextmenu", (e) => {
-                  e.preventDefault()
-                  
-                  let menu = document
-                  .querySelector("#root-folder-context-menu");
-                  if (menu.style.display === "block") {
-                    hideAllMenus();
-                  }
-                  else {
-                    menu.style.display = 'block';
-                    menu.style.left = e.pageX + "px";
-                    menu.style.top = e.pageY + "px";
-                  }
-                });
-              </script>
-            </body>
-            </html>
+                      burgerMenu.style.display = "block";
+                      
+                      burgerMenu.style.left = e.pageX + "px";
+                      burgerMenu.style.top = e.pageY + "px";
+                      
+                    })
+                    cancelUpload.addEventListener("click", (e) => {
+                      e.preventDefault();
+                      uploadFileForm.style.display="none";
+                    })
+                    cancelNewFolderForm.addEventListener("click", (e) => {
+                      e.preventDefault();
+                      createNewFolderForm.style.display="none";
+                    });
+                    uploadFileHereBtn.addEventListener("click", (e) => {
+                      uploadFileForm.style.display = "grid";
+                    })
+                    newFolderBtn.addEventListener("click", (e) => {
+                      createNewFolderForm.style.display="grid";
+                    });
+                    rootFolder.addEventListener("contextmenu", (e) => {
+                      e.preventDefault()
+                      
+                      let menu = document
+                      .querySelector("#root-folder-context-menu");
+                      if (menu.style.display === "block") {
+                        hideAllMenus();
+                      }
+                      else {
+                        menu.style.display = 'block';
+                        menu.style.left = e.pageX + "px";
+                        menu.style.top = e.pageY + "px";
+                      }
+                    });
+                  </script>
+                </body>
+                </html>

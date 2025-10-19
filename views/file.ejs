@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="/files.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>File Details</title>
+</head>
+<body>
+  <main>
+    <header>
+      <div id="burger"><button id="burger-button"><img src="/assets/hamburger_menu.svg" alt=""></button><h1>File Details</h1></div>
+      <h2>Logged in as: <%= user.name %></h2>
+      <div class="burger-menu" id="burger-menu">
+        <ul>
+          <li>
+            <a href=<%= `/logout/` %>>Logout</a>
+          </li>
+        </ul>
+      </div>
+    </header>
+    <div>
+      
+      <%- include("partials/errors.ejs") %>
+      <section>
+        
+        <span title="click to rename" id="file">
+          <img src="/assets/folder.svg" alt="folder">
+          <% paths.forEach((path,i) => { 
+            if (i === 0 || i < paths.length-1) { %>
+              <a href=<%= `/file/explorer/${path.id}` %>><%= path.name %></a>
+              <%= (path.name === '/') ? `` : ` /` %>
+              <% } else { %>
+                <form action="/file/folder/update" method="post">
+                  <input type="hidden" name="folderId" value=<%= path.id %>>
+                  <input type="hidden" name="authorId" value=<%= user.id %>>
+                  <input type="hidden" name="parentId" value=<%= file.parentId %>>
+                  <input max-length="255" min-length="1" type="text" name="folder-name" value="<%= path.name %>" size=<%= `${path.name.length}` %>>
+                  <button hidden type="submit">Update name</button>
+                  
+                </form>
+                <% } %>
+                <% }); %>
+              </span>
+            </section>
+            <section>
+              
+              <div class="file-menu">
+                
+                <ul>
+                  <li><span>Name:</span> <span><%= file.name %></span> </li>
+                  <li><span>Created:</span> <span><%= new Date(file.createdAt).toLocaleString().slice(0,16) %></span> </li>
+                  <li><span>Updated:</span> <span><%= new Date(file.updatedAt).toLocaleString().slice(0,16) || '' %></span> </li>
+                  <li><span>Size:</span> <span><%= file.size %>  bytes</span><span>
+
+                  </span></li>
+                  <li><span>Shared:</span> <%= file.shared ? 'yes' : 'no' %> </li>
+                  <li <%= file.shared ? '' : 'hidden' %> ><span <%= file.shared ? '' : 'hidden' %>>Share Expiry:</span> <span><%= file.shareExpiry || '' %></span> </li>
+                </ul>
+                <ul>
+                  <li><a href=<%= `\file\download\${file.id}` %>>Download</a></li>
+                  <li><a href=<%= `/file/share/${file.id}` %>>Share</a></li>
+                  <li><a href=<%= `/file/delete/${file.id}` %>>Delete</a></li>
+                </ul>
+              </div>
+            </section>
+          </div>
+        </main>
+      </body>
+      </html>

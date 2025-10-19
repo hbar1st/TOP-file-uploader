@@ -1,23 +1,32 @@
-const { Router } = require("express");
+const { Router } = require('express')
 
-const fileRouter = Router();
+const fileRouter = Router()
 
-const { getFileExplorer, uploadFile, updateFolder, createNewFolder, deleteFolder } = require("../controllers/fileController");
+const {
+  getFileExplorer, getFileDetails, uploadFile, deleteFile,
+  updateFolder, createNewFolder, deleteFolder
+} = require('../controllers/fileController')
 
-function protectRoute(req, res, next) {
-  req.isAuthenticated() ? next() : res.redirect("/"); 
+function protectRoute (req, res, next) {
+  req.isAuthenticated() ? next() : res.redirect('/')
 }
 
-fileRouter.get("/explorer", protectRoute, getFileExplorer);
+fileRouter.get('/explorer', protectRoute, getFileExplorer)
 
-fileRouter.get("/explorer/:folderId", protectRoute, getFileExplorer);
+fileRouter.get('/explorer/:folderId', protectRoute, getFileExplorer)
 
-fileRouter.post("/folder/new", protectRoute, createNewFolder);
+fileRouter.get('/details/:folderId/:fileId', protectRoute, getFileDetails, getFileExplorer)
 
-fileRouter.post("/folder/update", protectRoute, updateFolder);
+fileRouter.post('/folder/new', protectRoute, createNewFolder)
 
-fileRouter.get("/folder/delete/:id", protectRoute, deleteFolder);
+fileRouter.post('/folder/update', protectRoute, updateFolder)
 
-fileRouter.post("/upload", protectRoute, uploadFile)
+fileRouter.get('/folder/delete/:id', protectRoute, deleteFolder)
 
-module.exports = fileRouter;
+fileRouter.post('/upload', protectRoute, uploadFile)
+
+fileRouter.get('/delete/:id', protectRoute, deleteFile)
+
+fileRouter.get('/', protectRoute, getFileExplorer)
+
+module.exports = fileRouter

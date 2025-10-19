@@ -1,28 +1,28 @@
-const { Router } = require("express");
+const { Router } = require('express')
 
-const userRouter = Router();
+const userRouter = Router()
 
-const { getLoginForm, signUp, authenticate } = require("../controllers/userController");
+const { getLoginForm, signUp, authenticate } = require('../controllers/userController')
 
-userRouter.get("/", (req, res) => getLoginForm({ newUser: true, ...req }, res));
-
-userRouter
-.route("/sign-up")
-.get((req, res) => getLoginForm({ newUser: true, ...req }, res))
-.post(signUp);
+userRouter.get('/', (req, res) => getLoginForm({ newUser: true, ...req }, res))
 
 userRouter
-.route("/login")
-.get((req, res) => getLoginForm({ newUser: false, ...req }, res))
-.post(authenticate, (req, res) => { console.log("hmm, why am I here? ")});
+  .route('/sign-up')
+  .get((req, res) => getLoginForm({ newUser: true, ...req }, res))
+  .post(signUp)
 
-userRouter.get("/logout", (req, res, next) => {
+userRouter
+  .route('/login')
+  .get((req, res) => getLoginForm({ newUser: false, ...req }, res))
+  .post(authenticate, (req, res) => { console.log('hmm, why am I here? ') })
+
+userRouter.get('/logout', (req, res, next) => {
   req.logout((err) => {
     if (err) {
-      return next(err);
+      return next(err)
     }
-    res.redirect("/");
-  });
-});
+    res.redirect('/')
+  })
+})
 
-module.exports = userRouter;
+module.exports = userRouter
