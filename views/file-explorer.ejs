@@ -58,12 +58,13 @@
                     }, "");  %>
                   </span></li>
                   <li><span>Shared:</span> <%= rootFolder.shared ? 'yes' : 'no' %> </li>
-                  <li <%= rootFolder.shared ? '' : 'hidden' %> ><span <%= rootFolder.shared ? '' : 'hidden' %>>Share Expiry:</span> <span><%= rootFolder.shareExpiry || '' %></span> </li>
+                  <li <%= rootFolder.shared ? '' : 'hidden' %> >
+                    <span <%= rootFolder.shared ? '' : 'hidden' %>>Share Expiry:</span> <span <%= rootFolder.shared ? '' : 'hidden' %>><%= rootFolder.daysToExpire || '' %></span> </li>
                 </ul>
                 <ul>
                   <li><button type="button" id="upload-file-here">Upload a file here</button></li>
                   <li><button id="new-folder" type="button">New folder</button></li>
-                  <li><a href=<%= `/file/folder/share/${rootFolder.id}` %>>Share this folder</a></li>
+                  <li><a href=<%= `/file/folder/share/${rootFolder.id}` %>>Manage Sharing</a></li>
                   <% if (!isRootFolder) { %>         
                     <li><a href=<%= `/file/folder/delete/${rootFolder.id}` %>>Delete this folder</a></li>
                     <% } %>
@@ -90,7 +91,7 @@
                   <% folders.forEach(folder => { %>
                     
                     <li><a href=<%= `/file/explorer/${folder.id}` %> data-id=<%= `${folder.id}` %>>
-                      <span class="folders" data-id=<%= `${folder.id}` %>><img src=<%= folder.shared ? '/assets/folder_shared.svg' : '/assets/folder.svg' %> alt="">
+                      <span class="folders" data-id=<%= `${folder.id}` %>><img src='/assets/folder.svg' alt="folder">
                         <%= `${folder.name}` %></span></a>
                       </li>
                       

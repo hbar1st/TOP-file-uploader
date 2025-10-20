@@ -1,6 +1,8 @@
 // require('@prisma/client')
 const prisma = require('../middleware/prisma')
 
+const crypto = require("crypto")
+
 async function createRootFolder (authorId) {
   console.log('in createRootFolder: ')
   const newFolder = await prisma.folder.create({
@@ -68,19 +70,56 @@ function createFolder (authorId, parentId, name, pathArr) {
   return newFolder
 }
 
+function shareFolder(authorId, parentId, folderId, shareDuration) {
+
+  if (Number(shareDuration) === 0) {
+    // unshare the folder in this case
+    const folder = prisma.folder.update({
+      where: {
+        authorId: Number(authorId),
+        parentId: parentId ? Number(parentId) : null,
+        id: Number(folderId),
+      },
+      data: {
+        sharedId: null,
+        shareExpiry: 0
+      },
+    });
+    return folder;
+  } else {
+    const MS_IN_24_HRS = 1000 * 60 * 60 * 24; // 24 hours in milliseconds
+    const shareExpiry = Date.now() + MS_IN_24_HRS * Number(shareDuration)
+    const shareId = `${folderId}-${crypto.randomBytes(14).toString("hex")}`; 
+
+    // setup shareExpiry in the db to be a date in the future
+    // based on the epoch plus the ms in the passed in value of shareDuration which is in days
+    const folder = prisma.folder.update({
+      where: {
+        authorId: Number(authorId),
+        parentId: parentId ? Number(parentId) : null,
+        id: Number(folderId),
+      },
+      data: {
+        sharedId: shareId,
+        shareExpiry: shareExpiry,
+      },
+    });
+    return folder;
+  }
+}
 function updateFolder (authorId, parentId, folderId, newName) {
   console.log('in updateFolder: ', authorId, parentId, folderId, newName)
   const folder = prisma.folder.update({
     where: {
       authorId: Number(authorId),
-      parentId: Number(parentId),
+      parentId: parentId ? Number(parentId) : null,
       id: Number(folderId),
-      updatedAt: new Date().toISOString()
     },
     data: {
-      name: newName
-    }
-  })
+      name: newName,
+      updatedAt: new Date().toISOString(),
+    },
+  });
   return folder
 }
 
@@ -215,6 +254,7 @@ module.exports = {
   getFolderPath,
   deleteFolder,
   getUniqueFolder,
+  shareFolder,
   updateFolder,
   deleteFileById
 }

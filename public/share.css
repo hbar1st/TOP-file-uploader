@@ -1,0 +1,232 @@
+* {
+  
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+}
+
+body {
+  padding: 3ch;
+}
+
+main {
+  padding: 1ch;
+}
+
+h2 {
+  margin-top: 3ch;
+}
+
+main section:last-of-type {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  row-gap: 1rem;
+  width: max-content;
+}
+main section:first-of-type {
+  display: flex;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+  background-color: #21a99254;
+  margin-top: 3ch;
+  padding: .1ch 1ch;
+  user-select: none;
+  row-gap: 1rem;
+  
+  > div:first-of-type {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;    
+    min-width: 100%;
+    justify-content: flex-start;
+    align-items: center;
+    column-gap: 1ch;
+    font-weight: 600;
+    
+    
+  }
+}
+
+
+form > input {
+  background-color: transparent;
+  border: none;
+}
+
+form > button {
+  padding: 1ch 2ch;
+  width: fit-content;
+  align-self: center;
+}
+form > input:last-of-type:hover {
+  background-color: #ffeb3b;
+  font-weight: 500;
+}
+button, img {
+  
+  user-select: none;
+}
+
+#upload-status {
+  display: none;
+  padding: 1rem;
+  margin: 1rem;
+  justify-content: center;
+  background-color: chartreuse;
+  font-size: larger;
+  font-weight: 600;
+  color: #1806ba;
+}
+
+.folders {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  column-gap: 1ch;
+}
+
+.contents {
+  list-style-type: none;
+  display: flex;
+  flex-direction: column;
+  column-gap: 1ch;
+}
+
+#burger {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  column-gap: 1ch;
+  
+  > button {
+    background-color: transparent;
+    border: none;
+    outline: none;
+    display: flex;
+    align-items: center;
+    
+    > img {
+      height: 2rem;
+      background-color: inherit;
+    }
+  }
+}
+
+.burger-menu {
+  display: none;
+  background-color: white;
+  padding: 1rem;
+  
+  > ul {
+    list-style-type: none;
+  }
+}
+
+datalist {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  writing-mode: horizontal-tb;
+  width: fit-content;
+  column-gap: 29.5%;
+}
+
+option {
+  padding: 0;
+}
+
+input[type="range"] {
+  width: 200px;
+  margin: 0;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  row-gap: 2rem;
+  border: 1px solid black;
+  width: fit-content;
+  padding: 1rem;
+  border-radius: 5px;
+  
+  > label {
+    font-weight: 550;
+    font-family: courier;
+  }
+}
+
+#duration-ctrl {
+  margin-left: 2ch;
+}
+
+
+/* Open state of the dialog  */
+dialog:open {
+  opacity: 1;
+  transform: scaleY(1);
+  position: relative;
+  margin-top: 1rem;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  row-gap: 1rem;
+}
+
+/* Closed state of the dialog   */
+dialog {
+  opacity: 0;
+  transform: scaleY(0);
+  transition:
+  opacity 0.7s ease-out,
+  transform 0.7s ease-out,
+  overlay 0.7s ease-out allow-discrete,
+  display 0.7s ease-out allow-discrete;
+  /* Equivalent to
+  transition: all 0.7s allow-discrete; */
+}
+
+/* Before open state  */
+/* Needs to be after the previous dialog:open rule to take effect,
+as the specificity is the same */
+@starting-style {
+  dialog:open {
+    opacity: 0;
+    transform: scaleY(0);
+  }
+}
+
+/* Transition the :backdrop when the dialog modal is promoted to the top layer */
+dialog::backdrop {
+  background-color: transparent;
+  transition:
+  display 0.7s allow-discrete,
+  overlay 0.7s allow-discrete,
+  background-color 0.7s;
+  /* Equivalent to
+  transition: all 0.7s allow-discrete; */
+}
+
+dialog:open::backdrop {
+  background-color: rgb(0 0 0 / 25%);
+}
+
+/* This starting-style rule cannot be nested inside the above selector
+because the nesting selector cannot represent pseudo-elements. */
+
+@starting-style {
+  dialog:open::backdrop {
+    background-color: transparent;
+  }
+}
+
+button {
+      padding: 4px 7px;
+    border-radius: 25px;
+    background-color: #cce2db;
+    font-family: serif;
+}

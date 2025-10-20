@@ -1,0 +1,7 @@
+-- AlterTable
+ALTER TABLE "File" ALTER COLUMN "sharedURL" DROP NOT NULL,
+ALTER COLUMN "shareExpiry" DROP NOT NULL;
+
+-- AlterTable
+ALTER TABLE "Folder" ALTER COLUMN "sharedURL" DROP NOT NULL,
+ALTER COLUMN "shareExpiry" DROP NOT NULL;

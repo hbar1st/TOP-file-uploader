@@ -55,11 +55,11 @@
 
                   </span></li>
                   <li><span>Shared:</span> <%= file.shared ? 'yes' : 'no' %> </li>
-                  <li <%= file.shared ? '' : 'hidden' %> ><span <%= file.shared ? '' : 'hidden' %>>Share Expiry:</span> <span><%= file.shareExpiry || '' %></span> </li>
+                  <li <%= file.shared ? '' : 'hidden' %> ><span <%= file.shared ? '' : 'hidden' %>>Share Expiry:</span> <span><%= file.daysToExpire || '' %></span> </li>
                 </ul>
                 <ul>
                   <li><a href=<%= `/file/download/${file.id}` %>>Download</a></li>
-                  <li><a href=<%= `/file/share/${file.id}` %>>Share</a></li>
+                  <li><a href=<%= `/file/share/${file.id}` %>>Manage Sharing</a></li>
                   <li><a href=<%= `/file/delete/${file.id}` %>>Delete</a></li>
                 </ul>
               </div>

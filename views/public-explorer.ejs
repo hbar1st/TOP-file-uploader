@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="/files.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>File Explorer</title>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>File Uploader App</h1>
+      <h2>Welcome, the folder below has been shared with you.</h2>
+      
+    </header>
+    <div>
+      <section>
+        <span title="right-click for details" id="root-folder">
+          <img src="/assets/folder.svg" alt="folder">
+          <% paths.forEach((path,i) => { 
+            if (i === 0 || i < paths.length-1) { %>
+              <a href=<%= `/shared/folder/${userId}/${path.id}/${sharedId}` %>><%= path.name %></a>
+              <%= (path.name === '/') ? `` : ` /` %>
+              <% } } ); %>
+            </span>
+          </section>
+          <section id="files-and-folders">
+            <ul class="contents">
+              <% folders.forEach(folder => { %>
+                
+                <li><a href=<%= `/shared/folder/${userId}/${folder.id}/${sharedId}` %>>
+                  <span class="folders" data-id=<%= `${folder.id}` %>><img src='/assets/folder.svg' alt="folder">
+                    <%= `${folder.name}` %>
+                  </span></a>
+                </li>
+                
+                <% }); %>
+                <% files.forEach(file => { %>
+                  
+                  <li><a href=<%= `/shared/folder/${userId}/${folder.id}/${sharedId}/${file.id}` %>>
+                    <span class="file" data-id=<%= `${file.id}` %>>
+                      <img src=<%= file.shared ? '/assets/file.svg' : '/assets/file.svg' %> alt="">
+                      <%= `${file.name}` %>
+                    </span></a>
+                  </li>
+                  
+                  <% }); %>
+                </ul>
+              </section>
+            </div>
+            
+          </main>
+        </body>
+        </html>

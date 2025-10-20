@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="/share.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Share Assets</title>
+</head>
+<body>
+  <main>
+    <header>
+      <div id="burger"><button id="burger-button"><img src="/assets/hamburger_menu.svg" alt=""></button><h1>File Uploader App</h1></div>
+      <h2><%= user.name %></h2>
+      <div class="burger-menu" id="burger-menu">
+        <ul>
+          <li>
+            <a href=<%= `/logout/` %>>Logout</a>
+          </li>
+        </ul>
+      </div>
+    </header>
+    <section>
+      <div>In 
+        <img src="/assets/folder.svg" alt="folder">
+        <% paths.forEach((path,i) => { 
+          if (i === 0 || i < paths.length-1) { %>
+            <a href=<%= `/file/explorer/${path.id}` %>><%= path.name %></a>
+            <%= (path.name === '/') ? `` : ` /` %>
+            <% } %>
+            
+            <% }); %>
+          </div>
+        </section>
+        <section>
+          <h3>Manage sharing for: <%= folder.name %></h3>
+        </section>
+        <dialog open>
+          <% console.log("Is folder shared? : ", folder.shared, folder.sharedURL); %>
+          <% if (folder.shared) { %> 
+            <p>Folder shared!</p>
+            <button id="copy-btn">Copy sharing link</button>
+            <input type="hidden" id="share-url" value=<%= folder.sharedURL %>>
+            <% } else { %>
+              <p>Folder sharing canceled!</p>
+              <% } %>
+              <button autofocus><a href=<%= `/file/explorer/${folder.id}` %>>OK</a></button>
+            </dialog>
+          </main>
+          <script>
+            
+            const copyBtn = document.querySelector("#copy-btn");
+            const shareURL = document.querySelector("#share-url");
+            
+            // Copy the text inside the text field
+            copyBtn.addEventListener("click", (e) => {
+              e.preventDefault();
+              console.log(shareURL.value);
+              navigator.clipboard.writeText(shareURL.value)
+              .then(() => alert("link copied: " + shareURL.value))   ;     
+            })
+            
+          </script>
+        </body>
+        </html>

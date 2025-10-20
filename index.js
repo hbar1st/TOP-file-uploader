@@ -95,6 +95,9 @@ app.use('/', userRouter)
 const fileRouter = require('./routers/fileRouter')
 app.use('/file', fileRouter)
 
+const shareRouter = require('./routers/shareRouter')
+app.use('/shared', shareRouter)
+
 // Catch-all for unhandled routes (must be placed last but before error handler)
 app.use((req, res) => {
   res.status(404).send({
@@ -109,12 +112,17 @@ app.use((err, req, res, next) => {
   if (res.status === 401) {
     console.log('user tried to do something without being authenticated, tell them!')
   }
-  console.error('in the catch-all: ', err)
+  console.log("================================================")
+  console.error('in the catch-all: ', err, err.stack)
   if (res.statusCode < 400) {
     res.status(500)
   }
   // Send a user-friendly error message to the client
-  res.render('500', { statuscode: req.statusCode, errors: err })
+  if (res.statusCode === 404) {
+    res.render('404');
+  } else {
+    res.render('500', { statuscode: req.statusCode, errors: err })
+  }
 })
 
 const port = process.env.PORT || 3000

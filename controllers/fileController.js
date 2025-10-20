@@ -1,11 +1,15 @@
 const { body, param, validationResult } = require('express-validator')
 const axios = require("axios");
 
+const { msToDays, basicFolderIdCheck, getPathsForDisplay } = require("../utils/utils")
+
 const fs = require("fs");
 
 require('dotenv').config()
 const cloudinary = require('cloudinary').v2
 const CustomNotFoundError = require('../errors/CustomNotFoundError')
+const ValidationError = require("../errors/ValidationError")
+
 const {
   getFiles,
   createRootFolder,
@@ -19,14 +23,14 @@ const {
   getUniqueFile,
   getFileById,
   deleteFileById,
+  shareFolder: dbShareFolder,
   deleteFolder: dbDeleteFolder,
   updateFolder: dbUpdateFolder
 } = require('../db/fileQueries')
 
-// const { user } = require("../middleware/prisma");
 
 const multer = require('multer')
-const { file } = require('../middleware/prisma')
+const { file, folder } = require('../middleware/prisma')
 
 const storage = multer.memoryStorage()
 /*
@@ -63,16 +67,6 @@ function basicAuthorIdCheck (value) {
   )
 }
 
-function basicFolderIdCheck (value) {
-  return (
-    value
-    .trim()
-    .notEmpty()
-    .withMessage('The folder id must be provided.')
-    .isInt({ min: 1 })
-    .withMessage('The folder id must be a number.')
-  )
-}
 
 const validateFile = [
   // check if the root folder exists for this specific user first
@@ -149,8 +143,8 @@ const downloadFile = [
             url: file.url,
             responseType: "stream",
           }).then(function (response) {
-                console.log(`statusCode: ${response.status}`);
-                console.log(response);
+            console.log(`statusCode: ${response.status}`);
+            console.log(response);
             // Set headers so browser treats it as a download
             res.setHeader(
               "Content-Disposition",
@@ -158,7 +152,7 @@ const downloadFile = [
             );
             res.setHeader("Content-Type", file.resource_type);
             res.setHeader("Content-Length", file.size);
-
+            
             // Pipe the file stream into the response
             response.data.pipe(res);
             
@@ -408,7 +402,9 @@ const uploadFile = [
         if (!errors.isEmpty()) {
           return getFileExplorer(req, res)
         } else {
-          const paths = await getFolderPath(user.id, [req.body['root-folder']])
+          const paths = await getPathsForDisplay(user.id, 
+            req.body["root-folder"],
+          );
           console.log('paths retrieved: ', paths)
           const pathArr = paths.map(val => val.id)
           
@@ -417,6 +413,8 @@ const uploadFile = [
         }
       }
     ]
+    
+
     
     async function deleteFolder (req, res) {
       const user = res.locals.currentUser
@@ -459,14 +457,22 @@ const uploadFile = [
             res.status(400)
             next()
           } else {
-            const paths = await getFolderPath(user.id, [
-              parentId
-            ])
-            console.log('paths retrieved: ', paths)
-            paths.push({ id: fileId, name: file.name })
-            // const pathArr = paths.map((val) => val.id)
-            console.log('render the file details: ', file)
-            res.render('file', { file, user, paths })
+            // setup daysToExpire from shareExpiry ms value
+            
+            const remMS = BigInt(file.shareExpiry) - BigInt(Date.now());
+            const shareRem = msToDays(remMS);
+            
+            if (remMS > 0) {
+              file.daysToExpire = file.shareExpiry
+              ? `${shareRem.days} days, ${shareRem.hours} hours`
+              : "0 days";
+            } else {
+              //TODO run an async update call to clear out the shareExpiry and sharedId since the duration time has expired
+            }
+            file.shared = remMS > 0;
+            const paths = await getPathsForDisplay(user.id, parentId);
+            paths.push({ id: fileId, name: file.name });
+            res.render("file", { file, user, paths });
           }
         }
       }
@@ -510,17 +516,116 @@ const uploadFile = [
         }
         console.log('file-explorer ERRORS? ', errors)
         
-        const paths = await getFolderPath(user.id, [rootFolder.id])
+        const paths = await getPathsForDisplay(
+          user.id,
+          rootFolder.id
+        );
+        
+        // setup daysToExpire from shareExpiry ms value
+        
+        const remMS = BigInt(rootFolder.shareExpiry) - BigInt(Date.now());
+        const shareRem = msToDays(remMS);
+        
+        if (remMS > 0) {
+          rootFolder.daysToExpire = rootFolder.shareExpiry
+          ? `${shareRem.days} days, ${shareRem.hours} hours`
+          : "0 days";
+        } else {
+          //TODO run an async update call to clear out the shareExpiry and sharedId since the duration time has expired
+        }
+        rootFolder.shared = remMS > 0;
+        
+        const viewVariables = {
+          user,
+          rootFolder,
+          folders,
+          files,
+          isRootFolder,
+          paths,
+        };
         if (errors.length > 0) {
-          res.render('file-explorer', { user, rootFolder, folders, files, isRootFolder, errors, paths })
+          res.render('file-explorer', { errors, ...viewVariables })
         } else {
           console.log(paths)
-          res.render('file-explorer', { user, rootFolder, folders, files, isRootFolder, paths })
+          res.render('file-explorer', viewVariables)
         }
       } else {
         res.status(404).redirect('/')
       }
     }
+    
+    const shareFolder = [
+      basicFolderIdCheck(body('folderId')),
+      body('share-duration')
+      .trim().notEmpty()
+      .withMessage("Share duration must be selected.")
+      .isInt({ min: 0, max: 7 })
+      .withMessage("Share duration must be a number 0-7."),
+      async (req, res, next) => {
+        if (req.isAuthenticated) {
+          const user = res.locals.currentUser;
+          // check if current user owns this folder or not
+          console.log("req.body: ", req.body);
+          const folder = await getFolder(user.id, req.body.folderId)
+          if (!folder) {
+            // this user is not allowed to share
+            next({ msg: "Insufficient permissions to share this folder." });
+          } else {
+            console.log("do something to share it: ", folder);
+            const sharedFolder = await dbShareFolder(
+              user.id,
+              folder.parentId,
+              folder.id,
+              req.body["share-duration"]
+            );
+            console.log(sharedFolder);
+            
+            const paths = await getPathsForDisplay(user.id, folder.id);
+            
+            // setup daysToExpire from shareExpiry ms value
+            const remMS = BigInt(sharedFolder.shareExpiry) - BigInt(Date.now());
+            const shareRem = msToDays(remMS)
+            if (remMS > 0) {
+              sharedFolder.daysToExpire = sharedFolder.shareExpiry
+                ? `${shareRem.days} days, ${shareRem.hours} hours`
+                : "0 days";
+              sharedFolder.sharedURL = `${req.headers.origin}/shared/folder/${user.id}/${sharedFolder.id}/${sharedFolder.sharedId}`;
+            } else {
+              //TODO run an async update call to clear out the shareExpiry and sharedId since the duration time has expired
+            }
+            sharedFolder.shared = remMS > 0
+            res.render("share-result", { user, folder: sharedFolder, paths });
+          }
+        } else {
+          throw new ValidationError("Please sign in first.")
+        }
+      }
+    ];
+    
+    const getShareFolder = [
+      basicFolderIdCheck(param('folderId')),
+      async (req, res, next) => {
+        if (req.isAuthenticated) {
+          const user = res.locals.currentUser;
+          // check if current user owns this folder or not
+          
+          const folder = await getFolder(user.id, req.params.folderId)
+          if (!folder) {
+            // this user is not allowed to share
+            next({ msg: "Insufficient permissions to share this folder." });
+          } else {
+            console.log("folder retrieved: ", folder);
+            const paths = await getPathsForDisplay(
+              user.id,
+              folder.id
+            );
+            res.render('share', { user, folder, paths })
+          }
+        } else {
+          throw new ValidationError("Insufficient permissions to share this folder")
+        }
+      }
+    ];
     
     module.exports = {
       getFileExplorer,
@@ -531,5 +636,7 @@ const uploadFile = [
       uploadFile,
       deleteFile,
       downloadFile,
+      getShareFolder,
+      shareFolder
     }
     

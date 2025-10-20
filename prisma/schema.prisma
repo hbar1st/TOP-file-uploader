@@ -7,7 +7,7 @@
 generator client {
   provider = "prisma-client-js"
   output   = "../generated/prisma"
-
+  previewFeatures = ["typedSql"]
   moduleFormat = "cjs"
 }
 
@@ -42,8 +42,8 @@ model File {
   size          Int
   url           String
   pathArr       Int[]
-  shared        Boolean   @default(false)
-  shareDuration Int       @default(0)
+  sharedId      String?
+  shareExpiry   BigInt?   @default(0)
   author        User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
   authorId      Int
   parent        Folder    @relation(fields: [parentId], references: [id], onDelete: Cascade)
@@ -57,8 +57,8 @@ model Folder {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime? @updatedAt
   name          String    @db.VarChar(255)
-  shared        Boolean   @default(false)
-  shareDuration Int       @default(0)
+  sharedId      String?
+  shareExpiry   BigInt?   @default(0)
   author        User      @relation(fields: [authorId], references: [id])
   authorId      Int
   files         File[]
