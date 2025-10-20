@@ -32,9 +32,10 @@ function createFile (
   size,
   publicId,
   resourceType,
+  url,
   pathArr
 ) {
-  console.log('in createFile: ', authorId, parentId, name, size, publicId, resourceType, pathArr)
+  console.log('in createFile: ', authorId, parentId, name, size, publicId, resourceType, url, pathArr)
 
   const file = prisma.file.create({
     data: {
@@ -45,7 +46,8 @@ function createFile (
       size,
       publicId,
       name,
-      resource_type: resourceType
+      resource_type: resourceType,
+      url
     }
   })
   return file

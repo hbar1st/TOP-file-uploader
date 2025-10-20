@@ -58,7 +58,7 @@
                   <li <%= file.shared ? '' : 'hidden' %> ><span <%= file.shared ? '' : 'hidden' %>>Share Expiry:</span> <span><%= file.shareExpiry || '' %></span> </li>
                 </ul>
                 <ul>
-                  <li><a href=<%= `\file\download\${file.id}` %>>Download</a></li>
+                  <li><a href=<%= `/file/download/${file.id}` %>>Download</a></li>
                   <li><a href=<%= `/file/share/${file.id}` %>>Share</a></li>
                   <li><a href=<%= `/file/delete/${file.id}` %>>Delete</a></li>
                 </ul>

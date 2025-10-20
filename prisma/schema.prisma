@@ -40,6 +40,7 @@ model File {
   publicId      String    @db.VarChar(255)  
   resource_type String    
   size          Int
+  url           String
   pathArr       Int[]
   shared        Boolean   @default(false)
   shareDuration Int       @default(0)
