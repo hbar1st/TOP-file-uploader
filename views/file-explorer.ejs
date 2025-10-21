@@ -147,14 +147,14 @@
                       })
                       
                       
-                      submitFileBtn.addEventListener('click', () => {
-                        hideAllMenus();
+                      submitFileBtn.addEventListener('click', (e) => {
+                        hideAllMenus(e);
                         statusDiv.style.display = 'grid'; // Show the message
                       })
                       
                       /*
-                      uploadFileForm.addEventListener('submit', function () {
-                      hideAllMenus();
+                      uploadFileForm.addEventListener('submit', function (e) {
+                      hideAllMenus(e);
                       debugger
                       status.style.display = 'grid'; // Show the message
                       debugger;
@@ -198,7 +198,7 @@
                         e.preventDefault()
                         
                         if (menu.style.display === "block") {
-                          hideAllMenus();
+                          hideAllMenus(e);
                         }
                         else {
                           menu.style.display = 'block';
