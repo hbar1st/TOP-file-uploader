@@ -277,6 +277,17 @@ function getUniqueFile (authorId, parentId, id) {
   return file
 }
 
+function getFileByName(name, parentId, authorId) {
+  console.log("in getFileByName: ", name, parentId, authorId);
+  const file = prisma.file.findFirst({
+    where: {
+      name,
+      parentId: Number(parentId),
+      authorId: Number(authorId)
+    }
+  });
+  return file;
+}
 function getUniqueFolder (name, parentId, authorId) {
   console.log('in getUniqueFolder: ', name, parentId, authorId)
   const folder = prisma.folder.findUnique({
@@ -352,6 +363,7 @@ module.exports = {
   getFiles,
   getFile,
   getFileById,
+  getFileByName,
   getUniqueFile,
   getFolders,
   hasRootFolder,

@@ -18,6 +18,7 @@ const ValidationError = require("../errors/ValidationError")
 const {
   getFiles,
   getFile,
+  getFileByName,
   createRootFolder,
   getFolders,
   hasRootFolder,
@@ -137,7 +138,6 @@ const uploadFile = [
       if (err instanceof multer.MulterError) {
         // A Multer error occurred (e.g., file size limit exceeded)
         console.log('Multer error: ', err.message)
-        // return res.status(400).send({ message: err.message, code: err.code })
         req.params.folderId = req.body.folderId
         req.errors = [{ msg: err.message }, { msg: 'Note that 10MB is max size for non video fies and 50MB is the max for videos.' }]
         return getFileExplorer(req, res)
@@ -165,6 +165,7 @@ const uploadFile = [
     }
     console.log('in uploadFile: ', req.file, req.body)
     if (!req.file) {
+      req.params.folderId = req.body.folderId;
       req.errors = [{ msg: 'Review Logs: No file uploaded.' }]
       return getFileExplorer(req, res)
     } else {
@@ -186,6 +187,15 @@ const uploadFile = [
     
     console.log('file details from multer: ', req.file)
     
+    // confirm the file is not a duplicate
+    const foundFile = await getFileByName(originalname, req.body.folderId, user.id)
+    
+    if (foundFile) {
+      
+      req.params.folderId = req.body.folderId;
+      req.errors = [{ msg: 'File name cannot be a duplicate of an existing file in thie path.' }]
+      return getFileExplorer(req, res)
+    }
     const options = {
       use_filename: true,
       overwrite: true,
@@ -209,12 +219,20 @@ const uploadFile = [
       })
       
       console.log('uploadResult: ', uploadResult)
+      if (!uploadResult) {
+        throw new Error([{msg: "Cloudinary upload failed. Please check logs."}])
+      }
       const file = await createFile(user.id, folderId, originalname, size, uploadResult.public_id, uploadResult.resource_type,
         uploadResult.secure_url,
         [
           ...req.parentFolder.pathArr,
           folderId
-        ])
+        ]);
+        
+        if (!file) {
+          res.status(500);
+          next(new Error("Failed to create this file"));
+        }
         res.redirect('/file/explorer/' + file.parentId)
       } catch (error) {
         console.log('in uploadFile: found an error during upload?')
@@ -224,336 +242,337 @@ const uploadFile = [
             uploadResult.publicId, {
               resource_type: uploadResult.resource_type,
               type: "authenticated",
-            });
-          }
-          console.error(error)
-          next(error)
-        }
-      }
-    ]
-    
-    const validateFolder = [
-      basicAuthorIdCheck(body('authorId')).customSanitizer((value) => Number(value)),
-      body('root-folder')
-      .trim()
-      .notEmpty()
-      .withMessage(
-        'Base folder is undefined. Cannot create a folder with no parent.'
-      )
-      .isInt({ min: 1 })
-      .withMessage('The folder id must be a number.')
-      .customSanitizer((value) => Number(value))
-      .custom(async (value, { req }) => {
-        // check if the root folder's id exists
-        console.log('check if the root folder exists: ', value)
-        const folder = await getFolder(req.body.authorId, value)
-        if (!folder) {
-          throw new Error("Base folder id doesn't exist. DB may be corrupted.")
-        }
-      }),
-      body('new-folder')
-      .trim()
-      .notEmpty()
-      .withMessage('Cannot create a folder with no name.')
-      .isLength({
-        max: 255
-      })
-      .withMessage('The folder name length must not exceed 255 characters.')
-      .custom(async (value, { req }) => {
-        console.log('check if this is a unique name in the current path')
-        const folder = await getUniqueFolder(
-          value,
-          req.body['root-folder'],
-          req.body.authorId
-        )
-        console.log('in validation process - retrieved folder: ', folder)
-        if (folder) {
-          throw new Error(`This folder name, "${value}", already exists.`)
-        }
-      })
-    ]
-    
-    const validateFolderB4Update = [
-      basicAuthorIdCheck(body('authorId')).customSanitizer((value) => Number(value)),
-      basicFolderIdCheck(body('folderId')).customSanitizer((value) => Number(value)),
-      body('folder-name')
-      .trim()
-      .notEmpty()
-      .withMessage('Cannot create a folder with no name.')
-      .isLength({
-        max: 255
-      })
-      .withMessage('The folder name length must not exceed 255 characters.')
-      .custom(async (value, { req }) => {
-        // check if this is a unique name in the current path
-        
-        const folder = await getFolder(req.body.authorId, req.body.folderId);
-        const existingFolder = await getUniqueFolder(
-          value,
-          folder.parentId,
-          req.body.authorId
-        )
-        if (existingFolder) {
-          throw new Error(`This folder name, "${value}", already exists.`)
-        }
-      })
-    ]
-    
-    const updateFolder = [
-      validateFolderB4Update,
-      async (req, res) => {
-        console.log('updateFolder: ', req.body['folder-name'])
-        
-        const user = res.locals.currentUser
-        
-        if (user.id !== Number(req.body.authorId)) {
-          req.errors = [
-            {
-              msg: 'Cannot update a folder that is not owned by the current user.'
             }
-          ]
-          return getFileExplorer(req, res) // the current user should not be modifying someone else's files
-        } else {
-          const errors = validationResult(req)
-          
-          console.log('ERRORS? ', errors)
-          if (!errors.isEmpty()) {
-            // req.errors = errors.array();
-            return getFileExplorer(req, res)
-          } else {
-            const folder = await dbUpdateFolder(
-              user.id,
-              req.body.parentId,
-              req.body.folderId,
-              req.body['folder-name']
-            )
-            res.redirect('/file/explorer/' + folder.id)
-          }
+          );
         }
+        console.error(error)
+        next(error)
       }
-    ]
-    
-    const createNewFolder = [
-      validateFolder,
-      async (req, res) => {
-        console.log('in createNewFolder: ', req.body['root-folder'])
-        
-        const user = res.locals.currentUser
-        if (user.id !== Number(req.body.authorId)) {
-          res.redirect('/') // the current user should not be modifying someone else's files
-        }
-        
+    }
+  ]
+  
+  const validateFolder = [
+    basicAuthorIdCheck(body('authorId')).customSanitizer((value) => Number(value)),
+    body('root-folder')
+    .trim()
+    .notEmpty()
+    .withMessage(
+      'Base folder is undefined. Cannot create a folder with no parent.'
+    )
+    .isInt({ min: 1 })
+    .withMessage('The folder id must be a number.')
+    .customSanitizer((value) => Number(value))
+    .custom(async (value, { req }) => {
+      // check if the root folder's id exists
+      console.log('check if the root folder exists: ', value)
+      const folder = await getFolder(req.body.authorId, value)
+      if (!folder) {
+        throw new Error("Base folder id doesn't exist. DB may be corrupted.")
+      }
+    }),
+    body('new-folder')
+    .trim()
+    .notEmpty()
+    .withMessage('Cannot create a folder with no name.')
+    .isLength({
+      max: 255
+    })
+    .withMessage('The folder name length must not exceed 255 characters.')
+    .custom(async (value, { req }) => {
+      console.log('check if this is a unique name in the current path')
+      const folder = await getUniqueFolder(
+        value,
+        req.body['root-folder'],
+        req.body.authorId
+      )
+      console.log('in validation process - retrieved folder: ', folder)
+      if (folder) {
+        throw new Error(`This folder name, "${value}", already exists.`)
+      }
+    })
+  ]
+  
+  const validateFolderB4Update = [
+    basicAuthorIdCheck(body('authorId')).customSanitizer((value) => Number(value)),
+    basicFolderIdCheck(body('folderId')).customSanitizer((value) => Number(value)),
+    body('folder-name')
+    .trim()
+    .notEmpty()
+    .withMessage('Cannot create a folder with no name.')
+    .isLength({
+      max: 255
+    })
+    .withMessage('The folder name length must not exceed 255 characters.')
+    .custom(async (value, { req }) => {
+      // check if this is a unique name in the current path
+      
+      const folder = await getFolder(req.body.authorId, req.body.folderId);
+      const existingFolder = await getUniqueFolder(
+        value,
+        folder.parentId,
+        req.body.authorId
+      )
+      if (existingFolder) {
+        throw new Error(`This folder name, "${value}", already exists.`)
+      }
+    })
+  ]
+  
+  const updateFolder = [
+    validateFolderB4Update,
+    async (req, res) => {
+      console.log('updateFolder: ', req.body['folder-name'])
+      
+      const user = res.locals.currentUser
+      
+      if (user.id !== Number(req.body.authorId)) {
+        req.errors = [
+          {
+            msg: 'Cannot update a folder that is not owned by the current user.'
+          }
+        ]
+        return getFileExplorer(req, res) // the current user should not be modifying someone else's files
+      } else {
         const errors = validationResult(req)
         
         console.log('ERRORS? ', errors)
         if (!errors.isEmpty()) {
+          // req.errors = errors.array();
           return getFileExplorer(req, res)
         } else {
-          const paths = await getPathsForDisplay(user.id, 
-            req.body["root-folder"],
-          );
-          console.log('paths retrieved: ', paths)
-          const pathArr = paths.map(val => val.id)
-          
-          await createFolder(user.id, req.body['root-folder'], req.body['new-folder'], pathArr)
-          res.redirect('/file/explorer/' + req.body['root-folder'])
+          const folder = await dbUpdateFolder(
+            user.id,
+            req.body.parentId,
+            req.body.folderId,
+            req.body['folder-name']
+          )
+          res.redirect('/file/explorer/' + folder.id)
         }
-      }
-    ]
-    
-    
-    
-    async function deleteFolder (req, res) {
-      const user = res.locals.currentUser
-      if (req.isAuthenticated()) {
-        // check if folder is root. If it is, that's an error
-        const folder = getFolder(user.id, req.params.id)
-        if (!folder) {
-          req.errors = [{ msg: "Failed to delete this folder as it doesn't exist." }]
-          return getFileExplorer(req, res)
-        } else if (folder.name === '/') {
-          req.errors = [{ msg: 'Cannot delete the root path.' }]
-          return getFileExplorer(req, res)
-        } else {
-          console.log('Try to delete the folder: ', req.params.id)
-          const deletedFolder = await dbDeleteFolder(user.id, req.params.id)
-          res.redirect('/file/explorer/' + deletedFolder.parentId)
-        }
-      } else {
-        res.redirect('/')
       }
     }
-    
-    async function getFileExplorer (req, res) {
-      if (req.isAuthenticated()) {
-        console.log('in getFileExplorer: ', res.locals.currentUser)
-        
-        const user = res.locals.currentUser
-        let rootFolder = await hasRootFolder(user.id)
-        
-        if (!rootFolder) {
-          rootFolder = await createRootFolder(user.id)
-        }
-        
-        if (req.params.folderId && (Number(req.params.folderId) !== rootFolder.id)) {
-          console.log('this is not the root folder that we are about to display')
-          rootFolder = await getFolder(user.id, req.params.folderId)
-          if (!rootFolder) {
-            throw new CustomNotFoundError('The folder cannot be found.')
-          }
-        }
-        console.log('rootFolder row: ', rootFolder)
-        const files = await getFiles(user.id, rootFolder.id)
-        
-        console.log('in getFileExplorer - retrieved files: ', files)
-        const folders = await getFolders(user.id, rootFolder.id)
-        console.log('in getFileExplorer - retrieved folders: ', folders)
-        console.log('root folder: ', rootFolder)
-        
-        let isRootFolder = false
-        if (rootFolder.name === '/') {
-          isRootFolder = true
-        }
-        let errors = validationResult(req)
-        if (req.errors) {
-          errors = [...errors.array(), ...req.errors]
-        } else {
-          errors = errors.array()
-        }
-        console.log('file-explorer ERRORS? ', errors)
-        
-        const paths = await getPathsForDisplay(
-          user.id,
-          rootFolder.id
+  ]
+  
+  const createNewFolder = [
+    validateFolder,
+    async (req, res) => {
+      console.log('in createNewFolder: ', req.body['root-folder'])
+      
+      const user = res.locals.currentUser
+      if (user.id !== Number(req.body.authorId)) {
+        res.redirect('/') // the current user should not be modifying someone else's files
+      }
+      
+      const errors = validationResult(req)
+      
+      console.log('ERRORS? ', errors)
+      if (!errors.isEmpty()) {
+        return getFileExplorer(req, res)
+      } else {
+        const paths = await getPathsForDisplay(user.id, 
+          req.body["root-folder"],
         );
+        console.log('paths retrieved: ', paths)
+        const pathArr = paths.map(val => val.id)
+        
+        await createFolder(user.id, req.body['root-folder'], req.body['new-folder'], pathArr)
+        res.redirect('/file/explorer/' + req.body['root-folder'])
+      }
+    }
+  ]
+  
+  
+  
+  async function deleteFolder (req, res) {
+    const user = res.locals.currentUser
+    if (req.isAuthenticated()) {
+      // check if folder is root. If it is, that's an error
+      const folder = getFolder(user.id, req.params.id)
+      if (!folder) {
+        req.errors = [{ msg: "Failed to delete this folder as it doesn't exist." }]
+        return getFileExplorer(req, res)
+      } else if (folder.name === '/') {
+        req.errors = [{ msg: 'Cannot delete the root path.' }]
+        return getFileExplorer(req, res)
+      } else {
+        console.log('Try to delete the folder: ', req.params.id)
+        const deletedFolder = await dbDeleteFolder(user.id, req.params.id)
+        res.redirect('/file/explorer/' + deletedFolder.parentId)
+      }
+    } else {
+      res.redirect('/')
+    }
+  }
+  
+  async function getFileExplorer (req, res) {
+    if (req.isAuthenticated()) {
+      console.log('in getFileExplorer: ', res.locals.currentUser)
+      
+      const user = res.locals.currentUser
+      let rootFolder = await hasRootFolder(user.id)
+      
+      if (!rootFolder) {
+        rootFolder = await createRootFolder(user.id)
+      }
+      
+      if (req.params.folderId && (Number(req.params.folderId) !== rootFolder.id)) {
+        console.log('this is not the root folder that we are about to display')
+        rootFolder = await getFolder(user.id, req.params.folderId)
+        if (!rootFolder) {
+          throw new CustomNotFoundError('The folder cannot be found.')
+        }
+      }
+      console.log('rootFolder row: ', rootFolder)
+      const files = await getFiles(user.id, rootFolder.id)
+      
+      console.log('in getFileExplorer - retrieved files: ', files)
+      const folders = await getFolders(user.id, rootFolder.id)
+      console.log('in getFileExplorer - retrieved folders: ', folders)
+      console.log('root folder: ', rootFolder)
+      
+      let isRootFolder = false
+      if (rootFolder.name === '/') {
+        isRootFolder = true
+      }
+      let errors = validationResult(req)
+      if (req.errors) {
+        errors = [...errors.array(), ...req.errors]
+      } else {
+        errors = errors.array()
+      }
+      console.log('file-explorer ERRORS? ', errors)
+      
+      const paths = await getPathsForDisplay(
+        user.id,
+        rootFolder.id
+      );
+      
+      // setup daysToExpire from shareExpiry ms value
+      
+      const remMS = BigInt(rootFolder.shareExpiry) - BigInt(Date.now());
+      const shareRem = msToDays(remMS);
+      
+      if (remMS > 0) {
+        rootFolder.daysToExpire = rootFolder.shareExpiry
+        ? `${shareRem.days} days, ${shareRem.hours} hours`
+        : "0 days";
+      } else {
+        //TODO run an async update call to clear out the shareExpiry and sharedId since the duration time has expired
+      }
+      rootFolder.shared = remMS > 0;
+      
+      const viewVariables = {
+        user,
+        rootFolder,
+        folders,
+        files,
+        isRootFolder,
+        paths,
+      };
+      if (errors.length > 0) {
+        res.render('file-explorer', { errors, ...viewVariables })
+      } else {
+        console.log(paths)
+        res.render('file-explorer', viewVariables)
+      }
+    } else {
+      res.status(404).redirect('/')
+    }
+  }
+  
+  const shareFile = [
+    basicFileIdCheck(body("fileId")),
+    body("share-duration")
+    .trim()
+    .notEmpty()
+    .withMessage("Share duration must be selected.")
+    .isInt({ min: 0, max: 7 })
+    .withMessage("Share duration must be a number 0-7."),
+    async (req, res, next) => {
+      const user = res.locals.currentUser;
+      // check if current user owns this folder or not
+      console.log("req.body: ", req.body);
+      const file = await getFile(user.id, req.body.fileId);
+      if (!file) {
+        // this user is not allowed to share
+        res.status(401);
+        next({ msg: "Insufficient permissions to share this folder." });
+      } else {
+        console.log("do something to share it: ", file);
+        const sharedFile = await dbShareFile(
+          user.id,
+          file.parentId,
+          file.id,
+          req.body["share-duration"]
+        );
+        console.log(sharedFile);
+        
+        const paths = await getPathsForDisplay(user.id, file.parentId);
         
         // setup daysToExpire from shareExpiry ms value
-        
-        const remMS = BigInt(rootFolder.shareExpiry) - BigInt(Date.now());
+        const remMS = BigInt(sharedFile.shareExpiry) - BigInt(Date.now());
         const shareRem = msToDays(remMS);
-        
         if (remMS > 0) {
-          rootFolder.daysToExpire = rootFolder.shareExpiry
+          sharedFile.daysToExpire = sharedFile.shareExpiry
           ? `${shareRem.days} days, ${shareRem.hours} hours`
           : "0 days";
+          sharedFile.sharedURL = `${req.headers.origin}/shared/folder/${user.id}/${sharedFile.parentId}/${sharedFile.sharedId}/${sharedFile.id}`;
         } else {
           //TODO run an async update call to clear out the shareExpiry and sharedId since the duration time has expired
         }
-        rootFolder.shared = remMS > 0;
-        
-        const viewVariables = {
+        sharedFile.shared = remMS > 0;
+        res.render("share-result", {
           user,
-          rootFolder,
-          folders,
-          files,
-          isRootFolder,
+          element: sharedFile,
           paths,
-        };
-        if (errors.length > 0) {
-          res.render('file-explorer', { errors, ...viewVariables })
-        } else {
-          console.log(paths)
-          res.render('file-explorer', viewVariables)
-        }
-      } else {
-        res.status(404).redirect('/')
+          elementType: "file",
+          elementId: "fileId",
+          elementImg: "/assets/file.svg",
+        });
       }
-    }
-    
-    const shareFile = [
-      basicFileIdCheck(body("fileId")),
-      body("share-duration")
-      .trim()
-      .notEmpty()
-      .withMessage("Share duration must be selected.")
-      .isInt({ min: 0, max: 7 })
-      .withMessage("Share duration must be a number 0-7."),
-      async (req, res, next) => {
+    },
+  ];
+  
+  const shareFolder = [
+    basicFolderIdCheck(body('folderId')),
+    body('share-duration')
+    .trim().notEmpty()
+    .withMessage("Share duration must be selected.")
+    .isInt({ min: 0, max: 7 })
+    .withMessage("Share duration must be a number 0-7."),
+    async (req, res, next) => {
+      if (req.isAuthenticated) {
         const user = res.locals.currentUser;
         // check if current user owns this folder or not
         console.log("req.body: ", req.body);
-        const file = await getFile(user.id, req.body.fileId);
-        if (!file) {
+        const folder = await getFolder(user.id, req.body.folderId)
+        if (!folder) {
           // this user is not allowed to share
-          res.status(401);
           next({ msg: "Insufficient permissions to share this folder." });
         } else {
-          console.log("do something to share it: ", file);
-          const sharedFile = await dbShareFile(
+          console.log("do something to share it: ", folder);
+          const sharedFolder = await dbShareFolder(
             user.id,
-            file.parentId,
-            file.id,
+            folder.parentId,
+            folder.id,
             req.body["share-duration"]
           );
-          console.log(sharedFile);
+          console.log(sharedFolder);
           
-          const paths = await getPathsForDisplay(user.id, file.parentId);
+          const paths = await getPathsForDisplay(user.id, folder.id);
           
           // setup daysToExpire from shareExpiry ms value
-          const remMS = BigInt(sharedFile.shareExpiry) - BigInt(Date.now());
-          const shareRem = msToDays(remMS);
+          const remMS = BigInt(sharedFolder.shareExpiry) - BigInt(Date.now());
+          const shareRem = msToDays(remMS)
           if (remMS > 0) {
-            sharedFile.daysToExpire = sharedFile.shareExpiry
+            sharedFolder.daysToExpire = sharedFolder.shareExpiry
             ? `${shareRem.days} days, ${shareRem.hours} hours`
             : "0 days";
-            sharedFile.sharedURL = `${req.headers.origin}/shared/folder/${user.id}/${sharedFile.parentId}/${sharedFile.sharedId}/${sharedFile.id}`;
+            sharedFolder.sharedURL = `${req.headers.origin}/shared/folder/${user.id}/${sharedFolder.id}/${sharedFolder.sharedId}`;
           } else {
             //TODO run an async update call to clear out the shareExpiry and sharedId since the duration time has expired
           }
-          sharedFile.shared = remMS > 0;
-          res.render("share-result", {
-            user,
-            element: sharedFile,
-            paths,
-            elementType: "file",
-            elementId: "fileId",
-            elementImg: "/assets/file.svg",
-          });
-        }
-      },
-    ];
-    
-    const shareFolder = [
-      basicFolderIdCheck(body('folderId')),
-      body('share-duration')
-      .trim().notEmpty()
-      .withMessage("Share duration must be selected.")
-      .isInt({ min: 0, max: 7 })
-      .withMessage("Share duration must be a number 0-7."),
-      async (req, res, next) => {
-        if (req.isAuthenticated) {
-          const user = res.locals.currentUser;
-          // check if current user owns this folder or not
-          console.log("req.body: ", req.body);
-          const folder = await getFolder(user.id, req.body.folderId)
-          if (!folder) {
-            // this user is not allowed to share
-            next({ msg: "Insufficient permissions to share this folder." });
-          } else {
-            console.log("do something to share it: ", folder);
-            const sharedFolder = await dbShareFolder(
-              user.id,
-              folder.parentId,
-              folder.id,
-              req.body["share-duration"]
-            );
-            console.log(sharedFolder);
-            
-            const paths = await getPathsForDisplay(user.id, folder.id);
-            
-            // setup daysToExpire from shareExpiry ms value
-            const remMS = BigInt(sharedFolder.shareExpiry) - BigInt(Date.now());
-            const shareRem = msToDays(remMS)
-            if (remMS > 0) {
-              sharedFolder.daysToExpire = sharedFolder.shareExpiry
-              ? `${shareRem.days} days, ${shareRem.hours} hours`
-              : "0 days";
-              sharedFolder.sharedURL = `${req.headers.origin}/shared/folder/${user.id}/${sharedFolder.id}/${sharedFolder.sharedId}`;
-            } else {
-              //TODO run an async update call to clear out the shareExpiry and sharedId since the duration time has expired
-            }
-            sharedFolder.shared = remMS > 0
-            res.render("share-result", { user, element: sharedFolder, paths,
+          sharedFolder.shared = remMS > 0
+          res.render("share-result", { user, element: sharedFolder, paths,
             elementType: "folder",
             elementId: "folderId",
             elementImg: "/assets/folder.svg", });
