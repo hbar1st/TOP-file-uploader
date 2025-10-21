@@ -60,147 +60,152 @@
                   <li><span>Shared:</span> <%= rootFolder.shared ? 'yes' : 'no' %> </li>
                   <li <%= rootFolder.shared ? '' : 'hidden' %> >
                     <span <%= rootFolder.shared ? '' : 'hidden' %>>Share Expiry:</span> <span <%= rootFolder.shared ? '' : 'hidden' %>><%= rootFolder.daysToExpire || '' %></span> </li>
-                </ul>
-                <ul>
-                  <li><button type="button" id="upload-file-here">Upload a file here</button></li>
-                  <li><button id="new-folder" type="button">New folder</button></li>
-                  <li><a href=<%= `/file/folder/share/${rootFolder.id}` %>>Manage Sharing</a></li>
-                  <% if (!isRootFolder) { %>         
-                    <li><a href=<%= `/file/folder/delete/${rootFolder.id}` %>>Delete this folder</a></li>
-                    <% } %>
                   </ul>
-                </div>
-              </section>
-              <section id="files-and-folders">
-                <form id="create-new-folder" action="/file/folder/new/" method="post" >
-                  <input type="hidden" name="root-folder" value=<%= rootFolder.id %>>
-                  
-                  <input type="hidden" name="authorId" value=<%= user.id %>>
-                  <input type="text" name="new-folder" value="New Folder" minlength="1" maxlength="255">
-                  <button type="submit"><img src="/assets/create_new_folder.svg" alt="create new folder"></button>
-                  <button id="cancel-new-folder"><img src="/assets/close_small_black.svg" alt="close"></button>
-                </form>
-                <form id="upload-file" action="/file/upload/" method="post" enctype="multipart/form-data">
-                  <input type="hidden" name="authorId" value=<%= user.id %>>
-                  <input type="hidden" name="folderId" value=<%= rootFolder.id %>>
-                  <input type="file" name="upload">
-                  <button type="submit" id="submit-file"><img src="/assets/upload_file.svg" alt="upload file"></button>
-                  <button id="cancel-upload"><img src="/assets/close_small_black.svg" alt="close"></button>
-                </form>
-                <ul class="contents">
-                  <% folders.forEach(folder => { %>
+                  <ul>
+                    <li><button type="button" id="upload-file-here">Upload a file here</button></li>
+                    <li><button id="new-folder" type="button">New folder</button></li>
+                    <li><a href=<%= `/file/folder/share/${rootFolder.id}` %>>Manage Sharing</a></li>
+                    <% if (!isRootFolder) { %>         
+                      <li><a href=<%= `/file/folder/delete/${rootFolder.id}` %>>Delete this folder</a></li>
+                      <% } %>
+                    </ul>
+                  </div>
+                </section>
+                <section id="files-and-folders">
+                  <form id="create-new-folder" action="/file/folder/new/" method="post" >
+                    <input type="hidden" name="root-folder" value=<%= rootFolder.id %>>
                     
-                    <li><a href=<%= `/file/explorer/${folder.id}` %> data-id=<%= `${folder.id}` %>>
-                      <span class="folders" data-id=<%= `${folder.id}` %>><img src='/assets/folder.svg' alt="folder">
-                        <%= `${folder.name}` %></span></a>
-                      </li>
+                    <input type="hidden" name="authorId" value=<%= user.id %>>
+                    <input type="text" name="new-folder" value="New Folder" minlength="1" maxlength="255">
+                    <button type="submit"><img src="/assets/create_new_folder.svg" alt="create new folder"></button>
+                    <button id="cancel-new-folder"><img src="/assets/close_small_black.svg" alt="close"></button>
+                  </form>
+                  <form id="upload-file" action="/file/upload/" method="post" enctype="multipart/form-data">
+                    <input type="hidden" name="authorId" value=<%= user.id %>>
+                    <input type="hidden" name="folderId" value=<%= rootFolder.id %>>
+                    <input type="file" name="upload">
+                    <button type="submit" id="submit-file"><img src="/assets/upload_file.svg" alt="upload file"></button>
+                    <button id="cancel-upload"><img src="/assets/close_small_black.svg" alt="close"></button>
+                  </form>
+                  <ul class="contents">
+                    <% folders.forEach(folder => { %>
                       
-                      <% }); %>
-                      <% files.forEach(file => { %>
+                      <li><a href=<%= `/file/explorer/${folder.id}` %> data-id=<%= `${folder.id}` %>>
+                        <span class="folders" data-id=<%= `${folder.id}` %>><img src='/assets/folder.svg' alt="folder">
+                          <%= `${folder.name}` %></span></a>
+                        </li>
                         
-                        <li><a href=<%= `/file/details/${rootFolder.id}/${file.id}` %> data-id=<%= `${file.id}` %>>
-                          <span class="file" data-id=<%= `${file.id}` %>><img src=<%= file.shared ? '/assets/file.svg' : '/assets/file.svg' %> alt="">
-                            <%= `${file.name}` %></span></a>
-                          </li>
+                        <% }); %>
+                        <% files.forEach(file => { %>
                           
-                          <% }); %>
-                        </ul>
-                      </section>
-                    </div>
-                    
-                    <div id="upload-status">
-                      <p>Uploading file, please wait…</p>
-                    </div>
-                    
-                    
-                  </main>
-                  <script>
-                    const newFolderBtn = document.querySelector("#new-folder");
-                    const burgerBtn = document.querySelector("#burger-button");
-                    const uploadFileHereBtn = document.querySelector("#upload-file-here");
-                    const rootFolder = document.querySelector("#root-folder");
-                    const createNewFolderForm = document.querySelector("#create-new-folder");
-                    const uploadFileForm = document.querySelector("#upload-file");
-                    const cancelNewFolderForm = document.querySelector("#cancel-new-folder");
-                    const cancelUpload = document.querySelector("#cancel-upload");
-                    const allContextMenus = document.querySelectorAll(".context-menu");
-                    const burgerMenu = document.querySelector("#burger-menu");
-                    const statusDiv = document.querySelector('#upload-status');
-                    const errors = document.querySelector('.errors');
-                    const submitFileBtn = document.querySelector('#submit-file');
-                    const menu = document
-                    .querySelector("#root-folder-context-menu");
-                    
-                    submitFileBtn.addEventListener('click', () => {
-                      hideAllMenus();
-                      statusDiv.style.display = 'grid'; // Show the message
-                      debugger;
-                    })
-                    window.addEventListener('load', () => {
-                      statusDiv.style.display = 'none';
-                    })
-                    
-                    rootFolder.addEventListener('click', (e) => {
-                      if ( e.target.id === "root-folder") {
-                        menu.style.display = 'block';
-                        menu.style.left = e.pageX + "px";
-                        menu.style.top = e.pageY + "px";
-                      }
-                    })
-/*
-                    uploadFileForm.addEventListener('submit', function () {
+                          <li><a href=<%= `/file/details/${rootFolder.id}/${file.id}` %> data-id=<%= `${file.id}` %>>
+                            <span class="file" data-id=<%= `${file.id}` %>><img src=<%= file.shared ? '/assets/file.svg' : '/assets/file.svg' %> alt="">
+                              <%= `${file.name}` %></span></a>
+                            </li>
+                            
+                            <% }); %>
+                          </ul>
+                        </section>
+                      </div>
+                      
+                      <div id="upload-status">
+                        <p>Uploading file, please wait…</p>
+                      </div>
+                      
+                      
+                    </main>
+                    <script>
+                      const newFolderBtn = document.querySelector("#new-folder");
+                      const burgerBtn = document.querySelector("#burger-button");
+                      const uploadFileHereBtn = document.querySelector("#upload-file-here");
+                      const rootFolder = document.querySelector("#root-folder");
+                      const createNewFolderForm = document.querySelector("#create-new-folder");
+                      const uploadFileForm = document.querySelector("#upload-file");
+                      const cancelNewFolderForm = document.querySelector("#cancel-new-folder");
+                      const cancelUpload = document.querySelector("#cancel-upload");
+                      const allContextMenus = document.querySelectorAll(".context-menu");
+                      const burgerMenu = document.querySelector("#burger-menu");
+                      const statusDiv = document.querySelector('#upload-status');
+                      const errors = document.querySelector('.errors');
+                      const submitFileBtn = document.querySelector('#submit-file');
+                      const menu = document.querySelector("#root-folder-context-menu");
+                      
+                      window.addEventListener('load', () => {
+                        statusDiv.style.display = 'none';
+                      })
+                      
+                      rootFolder.addEventListener('click', (e) => {
+                        if ( e.target.id === "root-folder") {
+                          menu.style.display = 'block';
+                          if (e.pageX > Math.floor(window.innerWidth / 2)) {
+                            menu.style.left = e.pageX - menu.offsetWidth + "px";
+                          } else {
+                            menu.style.left = e.pageX + "px";
+                          }
+                          menu.style.top = e.pageY + "px";
+                        }
+                      })
+                      
+                      
+                      submitFileBtn.addEventListener('click', () => {
+                        hideAllMenus();
+                        statusDiv.style.display = 'grid'; // Show the message
+                      })
+                      
+                      /*
+                      uploadFileForm.addEventListener('submit', function () {
                       hideAllMenus();
                       debugger
                       status.style.display = 'grid'; // Show the message
                       debugger;
-                    });
-                    */
-                    createNewFolderForm.style.display="none";
-                    
-                    document.onclick = hideAllMenus;
-                    
-                    function hideAllMenus(e) {
-                      if ( e.target.id !== "root-folder") {
-                        allContextMenus.forEach(menu => menu.style.display = "none");
-                      }
-                    }
-                    
-                    burgerBtn.addEventListener("click", (e) => {
-                      e.preventDefault();
-                      
-                      burgerMenu.style.display = "block";
-                      
-                      burgerMenu.style.left = e.pageX + "px";
-                      burgerMenu.style.top = e.pageY + "px";
-                      
-                    })
-                    cancelUpload.addEventListener("click", (e) => {
-                      e.preventDefault();
-                      uploadFileForm.style.display="none";
-                    })
-                    cancelNewFolderForm.addEventListener("click", (e) => {
-                      e.preventDefault();
+                      });
+                      */
                       createNewFolderForm.style.display="none";
-                    });
-                    uploadFileHereBtn.addEventListener("click", (e) => {
-                      uploadFileForm.style.display = "grid";
                       
-                    })
-                    newFolderBtn.addEventListener("click", (e) => {
-                      createNewFolderForm.style.display="grid";
-                    });
-                    rootFolder.addEventListener("contextmenu", (e) => {
-                      e.preventDefault()
+                      document.onclick = hideAllMenus;
                       
-                      if (menu.style.display === "block") {
-                        hideAllMenus();
+                      function hideAllMenus(e) {
+                        if ( e.target.id !== "root-folder") {
+                          allContextMenus.forEach(menu => menu.style.display = "none");
+                        }
                       }
-                      else {
-                        menu.style.display = 'block';
-                        menu.style.left = e.pageX + "px";
-                        menu.style.top = e.pageY + "px";
-                      }
-                    });
-                  </script>
-                </body>
-                </html>
+                      
+                      burgerBtn.addEventListener("click", (e) => {
+                        e.preventDefault();
+                        
+                        burgerMenu.style.display = "block";
+                        
+                        burgerMenu.style.left = e.pageX + "px";
+                        burgerMenu.style.top = e.pageY + "px";
+                        
+                      })
+                      cancelUpload.addEventListener("click", (e) => {
+                        e.preventDefault();
+                        uploadFileForm.style.display="none";
+                      })
+                      cancelNewFolderForm.addEventListener("click", (e) => {
+                        e.preventDefault();
+                        createNewFolderForm.style.display="none";
+                      });
+                      uploadFileHereBtn.addEventListener("click", (e) => {
+                        uploadFileForm.style.display = "grid";
+                        
+                      })
+                      newFolderBtn.addEventListener("click", (e) => {
+                        createNewFolderForm.style.display="grid";
+                      });
+                      rootFolder.addEventListener("contextmenu", (e) => {
+                        e.preventDefault()
+                        
+                        if (menu.style.display === "block") {
+                          hideAllMenus();
+                        }
+                        else {
+                          menu.style.display = 'block';
+                          menu.style.left = e.pageX + "px";
+                          menu.style.top = e.pageY + "px";
+                        }
+                      });
+                    </script>
+                  </body>
+                  </html>
