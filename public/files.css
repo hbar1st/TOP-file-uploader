@@ -129,7 +129,8 @@ main > div > section:last-of-type {
   row-gap: 2ch;
   column-gap: 2px;
   grid-template-rows: auto;
-  grid-template-columns: clamp(300px,calc(100dvw - 64px - 16px),550px) 32px 32px;
+  /*grid-template-columns: clamp(300px,calc(100dvw - 64px - 16px),550px) 32px 32px;*/
+  grid-template-columns: calc(100% - 64px - 4px - 16px) 32px 32px;
 }
 
 main > div > section:last-of-type > form {
