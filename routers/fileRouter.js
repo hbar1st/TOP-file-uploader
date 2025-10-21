@@ -3,7 +3,11 @@ const { Router } = require('express')
 const fileRouter = Router()
 
 const {
-  getFileExplorer, getFileDetails, uploadFile, deleteFile,
+  getFileDetails,
+} = require("../utils/utils");
+
+const {
+  getFileExplorer, uploadFile, deleteFile,
   updateFolder, createNewFolder, deleteFolder, getShareFolder,
   downloadFile, shareFolder
 } = require('../controllers/fileController')

@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="/files.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>File Details</title>
+</head>
+<body>
+  <main>
+    <header>
+      <div id="burger"><button id="burger-button"><img src="/assets/hamburger_menu.svg" alt=""></button><h1>File Details</h1></div>
+      <h2>Shared with you:</h2>
+      
+      <section>
+        
+        <span  id="file">
+          <img src="/assets/folder.svg" alt="folder">
+          <% paths.forEach((path,i) => { 
+            if (i === 0 || i < paths.length-1) { %>
+              <a href=<%= `/shared/folder/${user.id}/${path.id}/${sharedId}` %>><%= path.name %></a>
+              <%= (path.name === '/') ? `` : ` /` %>
+              <% } else { %>
+                <%= path.name %>
+                <% } %>
+                <% }); %>
+              </span>
+            </section>
+            <section>
+              
+              <div class="file-menu">
+                
+                <ul>
+                  <li><span>Name:</span> <span><%= file.name %></span> </li>
+                  <li><span>Created:</span> <span><%= new Date(file.createdAt).toLocaleString().slice(0,16) %></span> </li>
+                  <li><span>Updated:</span> <span><%= new Date(file.updatedAt).toLocaleString().slice(0,16) || '' %></span> </li>
+                  <li><span>Size:</span> <span><%= file.size %>  bytes</span><span>
+
+                  </span></li>
+                </ul>
+                <ul>
+                  <li><a href=<%= `/shared/folder/${user.id}/${folderId}/${sharedId}/download/${file.id}` %>>Download</a></li>
+                </ul>
+              </div>
+            </section>
+          </div>
+        </main>
+      </body>
+      </html>

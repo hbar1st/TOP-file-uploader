@@ -88,7 +88,7 @@ const getPublicExplorer = [
     
     const viewVariables = {
       userId,
-      folder: rootFolder,
+      folder,
       folders,
       files,
       isRootFolder,

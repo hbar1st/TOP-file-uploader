@@ -1,7 +1,13 @@
 const { body, param, validationResult } = require('express-validator')
 const axios = require("axios");
 
-const { msToDays, basicFolderIdCheck, getPathsForDisplay } = require("../utils/utils")
+const {
+  msToDays,
+  basicFolderIdCheck,
+  getPathsForDisplay,
+  basicFileIdCheck,
+  getFileDetails,
+} = require("../utils/utils");
 
 const fs = require("fs");
 
@@ -50,11 +56,6 @@ const upload = multer({
     files: 1
   }
 })
-
-function basicFileIdCheck (value) {
-  return value.trim().notEmpty().withMessage('A file id must be provided.')
-  .isInt({ min: 1 }).withMessage('The file id must be a number.')
-}
 
 function basicAuthorIdCheck (value) {
   return (
@@ -438,47 +439,6 @@ const uploadFile = [
         res.redirect('/')
       }
     }
-    
-    const getFileDetails = [
-      basicFolderIdCheck(param('folderId')),
-      basicFileIdCheck(param('fileId')),
-      async function (req, res, next) {
-        console.log('in getFileDetails: ', req.params)
-        if (req.isAuthenticated()) {
-          const user = res.locals.currentUser
-          const parentId = req.params.folderId
-          const fileId = req.params.fileId
-          
-          // check if the file belongs to the folder provided and the user.id
-          const file = await getUniqueFile(user.id, parentId, fileId)
-          
-          if (!file) {
-            req.errors = [
-              { msg: "The file doesn't exist." }
-            ]
-            res.status(400)
-            next()
-          } else {
-            // setup daysToExpire from shareExpiry ms value
-            
-            const remMS = BigInt(file.shareExpiry) - BigInt(Date.now());
-            const shareRem = msToDays(remMS);
-            
-            if (remMS > 0) {
-              file.daysToExpire = file.shareExpiry
-              ? `${shareRem.days} days, ${shareRem.hours} hours`
-              : "0 days";
-            } else {
-              //TODO run an async update call to clear out the shareExpiry and sharedId since the duration time has expired
-            }
-            file.shared = remMS > 0;
-            const paths = await getPathsForDisplay(user.id, parentId);
-            paths.push({ id: fileId, name: file.name });
-            res.render("file", { file, user, paths });
-          }
-        }
-      }
-    ]
     
     async function getFileExplorer (req, res) {
       if (req.isAuthenticated()) {
