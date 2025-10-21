@@ -218,7 +218,6 @@ const uploadFile = [
         .end(req.file.buffer)
       })
       
-      console.log('uploadResult: ', uploadResult)
       if (!uploadResult) {
         throw new Error([{msg: "Cloudinary upload failed. Please check logs."}])
       }
