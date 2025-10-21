@@ -147,7 +147,7 @@ const downloadFile = [
       res.status(404);
       next(new Error({ msg: "Invalid request." }));
     }
-    if (req.params.sharedId) {
+    if (req.params.sharedId !== file.sharedId) {
       // check if the file is descending from a shared folder to match or not
       rootFolder = await findRootSharedFolder(
         req.params.userId,
