@@ -42,7 +42,8 @@
             <% } else { %>
               <p>Folder sharing canceled!</p>
               <% } %>
-              <button autofocus><a href=<%= `/file/explorer/${element.parentId}` %>>OK</a></button>
+              <% const parentId = element.parentId ? element.parentId : ''; %>
+              <button autofocus><a href=<%= `/file/explorer/${parentId}` %>>OK</a></button>
             </div>
           </main>
           <script>
@@ -51,7 +52,7 @@
             const shareURL = document.querySelector("#share-url");
             
             // Copy the text inside the text field
-            copyBtn.addEventListener("click", (e) => {
+            copyBtn && copyBtn.addEventListener("click", (e) => {
               e.preventDefault();
               console.log(shareURL.value);
               navigator.clipboard.writeText(shareURL.value)

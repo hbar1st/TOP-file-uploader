@@ -402,7 +402,8 @@ const uploadFile = [
     }
   }
   
-  async function getFileExplorer (req, res) {
+  async function getFileExplorer(req, res, next) {
+
     if (req.isAuthenticated()) {
       console.log('in getFileExplorer: ', res.locals.currentUser)
       
