@@ -1,5 +1,4 @@
 const { body, param, validationResult } = require('express-validator')
-const axios = require("axios");
 
 const {
   msToDays,
@@ -129,45 +128,6 @@ const deleteFile = [
   },
 ];
 
-const downloadFile = [
-  basicFileIdCheck(param("id")),
-  async (req, res, next) => {
-    console.log("in downloadFile");
-    if (req.isAuthenticated()) {
-      const user = res.locals.currentUser;
-      const file = await getFileById(req.params.id);
-      if (file.authorId === user.id) {
-        try {
-          // try to fetch the file from cloudinary?
-          axios({
-            method: "get",
-            url: file.url,
-            responseType: "stream",
-          }).then(function (response) {
-            console.log(`statusCode: ${response.status}`);
-            console.log(response);
-            // Set headers so browser treats it as a download
-            res.setHeader(
-              "Content-Disposition",
-              `attachment; filename=${file.name}`
-            );
-            res.setHeader("Content-Type", file.resource_type);
-            res.setHeader("Content-Length", file.size);
-            
-            // Pipe the file stream into the response
-            response.data.pipe(res);
-            
-          });
-        } catch {
-          
-          next(err);
-        }
-      } else {
-        next({ msg: "Improper permissions to download this file: " + file.name })
-      }
-    }
-  }
-]
 const shareFile = [
   async (req,res,next) =>  {
     const getTemporaryUrl = (publicId, expiresInSeconds = 3600) => {
@@ -597,7 +557,6 @@ const uploadFile = [
       updateFolder,
       uploadFile,
       deleteFile,
-      downloadFile,
       getShareFolder,
       shareFolder
     }

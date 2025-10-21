@@ -108,11 +108,27 @@ function shareFolder(authorId, parentId, folderId, shareDuration) {
   }
 }
 
+function removeFileShareSettings(id) {
+    console.log("in removeFileShareSettings: ", id);
+    const file = prisma.file.update({
+      where: {
+        id: Number(id),
+      },
+      data: {
+        shareExpiry: 0,
+        sharedId: null,
+      },
+    });
+    return file;
+}
+
 function removeShareSettings(id) {
   console.log('in removeShareSettings: ', id)
   const folder = prisma.folder.update({
     where: {
       id: Number(id),
+    },
+    data: {
       shareExpiry: 0,
       sharedId: null
     }
@@ -291,6 +307,7 @@ module.exports = {
   shareFolder,
   updateFolder,
   removeShareSettings,
+  removeFileShareSettings,
   findRootSharedFolder,
   deleteFileById,
 };

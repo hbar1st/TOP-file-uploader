@@ -2,7 +2,7 @@ const { Router } = require('express')
 
 const shareRouter = Router()
 
-const { getFileDetails } = require("../utils/utils");
+const { getFileDetails, downloadFile } = require("../utils/utils");
 
 const {
   getPublicExplorer,
@@ -13,7 +13,7 @@ shareRouter.get("/folder/:userId/:folderId/:sharedId", getPublicExplorer);
 
 shareRouter.get("/folder/:userId/:folderId/:sharedId/:fileId", getFileDetails, getPublicExplorer);
 
-//shareRouter.get("/folder/:userId/:folderId/:sharedId/download/:fileId", getFileDetails, downloadFile)
+shareRouter.get("/folder/:userId/:folderId/:sharedId/download/:id", getFileDetails, downloadFile)
 
 module.exports = shareRouter;
 

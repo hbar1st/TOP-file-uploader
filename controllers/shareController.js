@@ -49,7 +49,7 @@ const getPublicExplorer = [
     } else {
       // if the expiry date has in fact passed, update the db and remove the sharedId and shareExpiry to blank/0 again
       // and show the user a 404 page?
-      //TODO run an async update call to clear out the shareExpiry and sharedId since the duration time has expired
+      // run an async update call to clear out the shareExpiry and sharedId since the duration time has expired
       try {
         const folder = await removeShareSettings(rootFolder.id)
       } catch (error) {

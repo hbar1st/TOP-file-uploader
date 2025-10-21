@@ -6,12 +6,12 @@
         <title>Server Error</title>
         <style>
             body { font-family: sans-serif; text-align: center; padding: 50px; }
-            h1 { color: #dc3545; }
+            h1 { color: #0a5981; }
         </style>
     </head>
     <body>
-        <h1><%= statuscode %>Internal Server Error</h1>
-        <p>Something went wrong on our end. Please try again later.</p>
+        <h1><%= statuscode %>Unauthorized Request</h1>
+        <p>You do not have the proper permissions to view the file/folder.</p>
         <% if (locals.errors && process.env.NODE_ENV !== 'production') { %>
             
             <p><%= locals.errors.msg %></p>

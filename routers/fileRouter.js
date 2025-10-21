@@ -2,14 +2,12 @@ const { Router } = require('express')
 
 const fileRouter = Router()
 
-const {
-  getFileDetails,
-} = require("../utils/utils");
+const { getFileDetails, downloadFile } = require("../utils/utils");
 
 const {
   getFileExplorer, uploadFile, deleteFile,
   updateFolder, createNewFolder, deleteFolder, getShareFolder,
-  downloadFile, shareFolder
+  shareFolder
 } = require('../controllers/fileController')
 
 function protectRoute (req, res, next) {

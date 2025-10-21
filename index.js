@@ -120,7 +120,9 @@ app.use((err, req, res, next) => {
   // Send a user-friendly error message to the client
   if (res.statusCode === 404) {
     res.render('404');
-  } else {
+  } else if (res.statusCode === 401) {
+    res.render('401', { statuscode: req.statusCode, errors: err});
+  }  else {
     res.render('500', { statuscode: req.statusCode, errors: err })
   }
 })
