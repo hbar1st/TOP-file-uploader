@@ -31,7 +31,7 @@ const getPublicExplorer = [
       
       // 1- the sharedId must match the one given in the URL
       // 2- the expiry should not have passed
-      if (file.sharedId !== Number(req.params.sharedId)) {
+      if (file.sharedId !== req.params.sharedId) {
         
         setStatus(400);
         next(new Error({ msg: "Invalid request" }));
@@ -52,7 +52,7 @@ const getPublicExplorer = [
           next(new Error({ msg: "This share has expired" }));
         } else {
           console.log("TODO: do something here?");
-          res.setStatus(500);
+          res.status(500);
           next(new Error({msg: 'missing work item'}))
         }
       }
@@ -67,12 +67,12 @@ const getPublicExplorer = [
       
       // 1- the sharedId must match the one given in the URL
       // 2- the expiry should not have passed
-      if (rootFolder.sharedId !== Number(req.params.sharedId)) {
+      if (rootFolder.sharedId !== req.params.sharedId) {
         // if the sharedId then this folder may be a descendant, but we need to make sure first
         rootFolder = await findRootSharedFolder(req.params.userId, req.params.sharedId, folder.pathArr);
         console.log("found the root shared folder: ", rootFolder);
         if (!rootFolder) {
-          setStatus(400);
+          res.status(400);
           next(new Error({ msg: 'Invalid request' }))
         }
       }
