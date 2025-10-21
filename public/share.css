@@ -44,9 +44,7 @@ main section:first-of-type {
     justify-content: flex-start;
     align-items: center;
     column-gap: 1ch;
-    font-weight: 600;
-    
-    
+    font-weight: 600;    
   }
 }
 
@@ -133,10 +131,12 @@ datalist {
   writing-mode: horizontal-tb;
   width: fit-content;
   column-gap: 29.5%;
+  color: black;
 }
 
 option {
   padding: 0;
+  color: black;
 }
 
 input[type="range"] {
@@ -179,10 +179,11 @@ form {
 
 
 button {
-      padding: 4px 7px;
-    border-radius: 25px;
-    background-color: #cce2db;
-    font-family: serif;
+  padding: 4px 7px;
+  border-radius: 25px;
+  background-color: #cce2db;
+  font-family: serif;
+  color: black;
 }
 
 p {
