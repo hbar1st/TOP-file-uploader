@@ -11,6 +11,7 @@ body {
 
 main {
   padding: 1ch;
+  max-width: clamp(350px,100%,100vw)
 }
 
 h2 {
@@ -118,6 +119,9 @@ main section:first-of-type {
   display: none;
 }
 
+#upload-file button[type="submit"] {
+  background-color: white;
+}
 main > div > section:last-of-type {
   margin-left: 2ch;
   margin-top: 2ch;

@@ -21,6 +21,8 @@
             if (i === 0 || i < paths.length-1) { %>
               <a href=<%= `/shared/folder/${userId}/${path.id}/${sharedId}` %>><%= path.name %></a>
               <%= (path.name === '/') ? `` : ` /` %>
+              <% } else { %>
+                <%= path.name %>
               <% } } ); %>
             </span>
           </section>

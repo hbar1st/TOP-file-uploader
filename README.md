@@ -10,8 +10,8 @@ This app is currently hosted on Koyeb (while it is in development only).
 [] create a menu with the option to change the user's name or password
 [] maybe also allow them to change their email address but that would require that they type in a special code that you sent them (which would expire in 5 minutes?)
 
-[] figure out the routes for CRUD on files
-[] figure the route for sharing a folder or a file and cancelling that share
+[] figure out the routes for CRUD on files (missing ability to update file names at the moment)
 [] test koyeb deployment
+[] test interface on mobile
 
 [] try to write code to add the username into the publicId used by cloudinary to identify the files? Either that or use custom/dynamic folders for each user?

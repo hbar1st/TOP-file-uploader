@@ -34,7 +34,7 @@
         <section>
           <h3>Manage sharing for: <%= folder.name %></h3>
         </section>
-        <dialog open>
+        <div id="result">
           <% console.log("Is folder shared? : ", folder.shared, folder.sharedURL); %>
           <% if (folder.shared) { %> 
             <p>Folder shared!</p>
@@ -44,7 +44,7 @@
               <p>Folder sharing canceled!</p>
               <% } %>
               <button autofocus><a href=<%= `/file/explorer/${folder.id}` %>>OK</a></button>
-            </dialog>
+            </div>
           </main>
           <script>
             

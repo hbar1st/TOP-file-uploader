@@ -341,12 +341,14 @@ const uploadFile = [
       .withMessage('The folder name length must not exceed 255 characters.')
       .custom(async (value, { req }) => {
         // check if this is a unique name in the current path
-        const folder = await getUniqueFolder(
+        
+        const folder = await getFolder(req.body.authorId, req.body.folderId);
+        const existingFolder = await getUniqueFolder(
           value,
-          req.body.folderId,
+          folder.parentId,
           req.body.authorId
         )
-        if (folder) {
+        if (existingFolder) {
           throw new Error(`This folder name, "${value}", already exists.`)
         }
       })

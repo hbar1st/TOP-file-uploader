@@ -14,22 +14,25 @@ body {
   font-size: calc(.7em + 1vw);
   > div {
     min-width: min(100vw-1rem,450px);
-
+    
   }
   > h2 {
     font-size: 1rem;
   }
+  
+  > main {
+    
+    max-width: clamp(350px,100%,100vw)
+  }
 }
 
 form {
-  display: grid;
-  grid-template-rows: auto;
-  grid-template-columns: 1fr 2fr;
+  display: flex;
   row-gap: 1rem;
   column-gap: .5rem;
   border: 1px dotted gray;
   padding: 2rem;
-
+  
   > legend {
     grid-column: 1 / -1;
     font-size: small;
@@ -59,11 +62,11 @@ input:valid {
   font-size: small;
   margin-top: 1rem;
   margin-bottom: 1rem;
-      background-color: #ffcfcf;
-    border-radius: 10px;
-    padding: .5ch 1ch;
-    font-weight: 550;
-    text-shadow: 1px 1px 3px white;
+  background-color: #ffcfcf;
+  border-radius: 10px;
+  padding: .5ch 1ch;
+  font-weight: 550;
+  text-shadow: 1px 1px 3px white;
 }
 
 button {

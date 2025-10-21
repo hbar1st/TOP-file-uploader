@@ -21,9 +21,9 @@ function basicFolderIdCheck(value) {
     .withMessage("The folder id must be a number.");
 }
 
-async function getPathsForDisplay(userId, folderId) {
-  console.log("in getPathsForDisplay: ", userId, folderId);
-  const paths = await getFolderPath(userId, [Number(folderId)]);
+async function getPathsForDisplay(userId, folderId, sharedId=0) {
+  console.log("in getPathsForDisplay: ", userId, folderId, sharedId);
+  const paths = await getFolderPath(userId, [Number(folderId)], sharedId);
   console.log("paths retrieved: ", paths);
   return paths;
 }

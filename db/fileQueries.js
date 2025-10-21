@@ -107,6 +107,19 @@ function shareFolder(authorId, parentId, folderId, shareDuration) {
     return folder;
   }
 }
+
+function removeShareSettings(id) {
+  console.log('in removeShareSettings: ', id)
+  const folder = prisma.folder.update({
+    where: {
+      id: Number(id),
+      shareExpiry: 0,
+      sharedId: null
+    }
+  })
+  return folder;
+}
+
 function updateFolder (authorId, parentId, folderId, newName) {
   console.log('in updateFolder: ', authorId, parentId, folderId, newName)
   const folder = prisma.folder.update({
@@ -213,8 +226,24 @@ function getUniqueFolder (name, parentId, authorId) {
   return folder
 }
 
-async function getFolderPath (authorId, folderIds, path = []) {
-  console.log('--------->>>>> in getFolderPath: ', authorId, folderIds, path)
+async function findRootSharedFolder(authorId, sharedId, folderPathArr) {
+  console.log("in findRootSharedFolder: ", authorId, sharedId, folderPathArr);
+
+  const folder = await prisma.folder.findFirst({
+    where: {
+      id: {
+        in: folderPathArr,
+      },
+      authorId: Number(authorId),
+      sharedId,
+    },
+  });
+
+  return folder;
+}
+
+async function getFolderPath (authorId, folderIds, sharedId, path = []) {
+  console.log('--------->>>>> in getFolderPath: ', authorId, folderIds, sharedId, path)
   if (!folderIds || folderIds.length === 0) {
     return path ?? []
   }
@@ -226,7 +255,8 @@ async function getFolderPath (authorId, folderIds, path = []) {
     select: {
       id: true,
       pathArr: true,
-      name: true
+      name: true,
+      sharedId: true
     }
   })
   if (!folder) {
@@ -238,7 +268,11 @@ async function getFolderPath (authorId, folderIds, path = []) {
   if (folder.pathArr && folder.pathArr.length > 0) {
     folderIds = Array.from(new Set([...folderIds, ...folder.pathArr]))
   }
-  return getFolderPath(authorId, folderIds, path)
+  if (folder.sharedId === sharedId) {
+    return path ?? []
+  } else {
+    return getFolderPath(authorId, folderIds, sharedId, path)
+  }
 }
 
 module.exports = {
@@ -256,5 +290,7 @@ module.exports = {
   getUniqueFolder,
   shareFolder,
   updateFolder,
-  deleteFileById
-}
+  removeShareSettings,
+  findRootSharedFolder,
+  deleteFileById,
+};
