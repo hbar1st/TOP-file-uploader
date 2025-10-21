@@ -21,7 +21,7 @@
     </header>
     <section>
       <div>In 
-        <img src="/assets/folder.svg" alt="folder">
+        <img src=<%= elementImg %> alt=<%= elementType %>>
         <% paths.forEach((path,i) => { 
           if (i === 0 || i < paths.length-1) { %>
             <a href=<%= `/file/explorer/${path.id}` %>><%= path.name %></a>
@@ -32,18 +32,17 @@
           </div>
         </section>
         <section>
-          <h3>Manage sharing for: <%= folder.name %></h3>
+          <h3>Manage sharing for: <%= element.name %></h3>
         </section>
         <div id="result">
-          <% console.log("Is folder shared? : ", folder.shared, folder.sharedURL); %>
-          <% if (folder.shared) { %> 
-            <p>Folder shared!</p>
+          <% if (element.shared) { %> 
+            <p><%= elementType.slice(0,1).toUpperCase().concat(elementType.slice(1,)) %> shared!</p>
             <button id="copy-btn">Copy sharing link</button>
-            <input type="hidden" id="share-url" value=<%= folder.sharedURL %>>
+            <input type="hidden" id="share-url" value=<%= element.sharedURL %>>
             <% } else { %>
               <p>Folder sharing canceled!</p>
               <% } %>
-              <button autofocus><a href=<%= `/file/explorer/${folder.id}` %>>OK</a></button>
+              <button autofocus><a href=<%= `/file/explorer/${element.id}` %>>OK</a></button>
             </div>
           </main>
           <script>

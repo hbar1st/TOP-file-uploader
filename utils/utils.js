@@ -143,6 +143,10 @@ const downloadFile = [
     const user = getUser(req,res);
     const file = await getFileById(req.params.id);
     
+    if (!file) {
+      res.status(404);
+      next(new Error({ msg: "Invalid request." }));
+    }
     if (req.params.sharedId) {
       // check if the file is descending from a shared folder to match or not
       rootFolder = await findRootSharedFolder(

@@ -21,7 +21,7 @@
     </header>
     <section>
       <div>In 
-        <img src="/assets/folder.svg" alt="folder">
+        <img src=<%= elementImg %> alt=<%= elementType %>>
         <% paths.forEach((path,i) => { 
           if (i === 0 || i < paths.length-1) { %>
             <a href=<%= `/file/explorer/${path.id}` %>><%= path.name %></a>
@@ -32,11 +32,11 @@
           </div>
         </section>
         <section>
-          <h3>Manage sharing for: <%= folder.name %></h3>
-          <form action="/file/folder/share" method="post">
+          <h3>Manage sharing for: <%= element.name %></h3>
+          <form action=<%= locals.action %> method="post">
             <input type="hidden" name="authorId" value=<%= user.id %>>
-            <input type="hidden" name="parentId" value=<%= folder.parentId %>>
-            <input type="hidden" name="folderId" value=<%= folder.id %>>
+            <input type="hidden" name="parentId" value=<%= element.parentId %>>
+            <input type="hidden" name=<%= elementId %> value=<%= element.id %>>
             <label for="share-duration">Share Duration (in days):</label>
             <div id="duration-ctrl">
               <input type="range" step="1" min="0" max="7" name="share-duration" id="share-duration" list="markers">

@@ -15,3 +15,10 @@ This app is currently hosted on Koyeb (while it is in development only).
 [] test interface on mobile
 
 [] try to write code to add the username into the publicId used by cloudinary to identify the files? Either that or use custom/dynamic folders for each user?
+
+[] i have a lot of duplicated logic especially in fileQueries.js between calls to prisma.file and prisma.folder. I can clean the duplicates if I add a flag to toggle between the two objects like:
+```js
+someDuplicatedFunction(isFile) {
+  const prismaObj = isFile ? prisma.file : prisma.folder;
+}
+```

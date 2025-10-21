@@ -70,6 +70,44 @@ function createFolder (authorId, parentId, name, pathArr) {
   return newFolder
 }
 
+function shareFile(authorId, parentId, fileId, shareDuration) {
+  console.log("in shareFile: ", authorId, parentId, fileId, shareDuration)
+  if (Number(shareDuration) === 0) {
+    // unshare the file in this case
+    const file = prisma.file.update({
+      where: {
+        authorId: Number(authorId),
+        parentId: parentId ? Number(parentId) : null,
+        id: Number(fileId),
+      },
+      data: {
+        sharedId: null,
+        shareExpiry: 0,
+      },
+    });
+    return file;
+  } else {
+    const MS_IN_24_HRS = 1000 * 60 * 60 * 24; // 24 hours in milliseconds
+    const shareExpiry = Date.now() + MS_IN_24_HRS * Number(shareDuration);
+    const shareId = `${fileId}-${crypto.randomBytes(14).toString("hex")}`;
+
+    // setup shareExpiry in the db to be a date in the future
+    // based on the epoch plus the ms in the passed in value of shareDuration which is in days
+    const file = prisma.file.update({
+      where: {
+        authorId: Number(authorId),
+        parentId: parentId ? Number(parentId) : null,
+        id: Number(fileId),
+      },
+      data: {
+        sharedId: shareId,
+        shareExpiry: shareExpiry,
+      },
+    });
+    return file;
+  }
+}
+
 function shareFolder(authorId, parentId, folderId, shareDuration) {
 
   if (Number(shareDuration) === 0) {
@@ -174,6 +212,17 @@ function getFolders (authorId, parentId) {
   return folders
 }
 
+function getFile(authorId, id) {
+    console.log("in getFolder: ", authorId, id);
+    const file = prisma.file.findUnique({
+      where: {
+        id: Number(id),
+        authorId: Number(authorId),
+      },
+    });
+    return file;
+}
+
 function getFolder (authorId, id) {
   console.log('in getFolder: ', authorId, id)
   const folder = prisma.folder.findUnique({
@@ -258,8 +307,15 @@ async function findRootSharedFolder(authorId, sharedId, folderPathArr) {
   return folder;
 }
 
-async function getFolderPath (authorId, folderIds, sharedId, path = []) {
-  console.log('--------->>>>> in getFolderPath: ', authorId, folderIds, sharedId, path)
+async function getFolderPath (authorId, folderIds, sharedId=null, path = []) {
+  console.log(
+    "--------->>>>> in getFolderPath: ",
+    authorId,
+    folderIds,
+    sharedId,
+    path
+  );
+
   if (!folderIds || folderIds.length === 0) {
     return path ?? []
   }
@@ -294,6 +350,7 @@ async function getFolderPath (authorId, folderIds, sharedId, path = []) {
 module.exports = {
   createRootFolder,
   getFiles,
+  getFile,
   getFileById,
   getUniqueFile,
   getFolders,
@@ -305,6 +362,7 @@ module.exports = {
   deleteFolder,
   getUniqueFolder,
   shareFolder,
+  shareFile,
   updateFolder,
   removeShareSettings,
   removeFileShareSettings,

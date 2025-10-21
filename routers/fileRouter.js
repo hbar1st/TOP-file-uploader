@@ -7,7 +7,7 @@ const { getFileDetails, downloadFile } = require("../utils/utils");
 const {
   getFileExplorer, uploadFile, deleteFile,
   updateFolder, createNewFolder, deleteFolder, getShareFolder,
-  shareFolder
+  shareFolder, getShareFile, shareFile,
 } = require('../controllers/fileController')
 
 function protectRoute (req, res, next) {
@@ -27,6 +27,10 @@ fileRouter.post('/folder/update', protectRoute, updateFolder)
 fileRouter.get('/folder/share/:folderId', protectRoute, getShareFolder)
 
 fileRouter.post('/folder/share', protectRoute, shareFolder)
+
+fileRouter.get('/share/:fileId', protectRoute, getShareFile)
+
+fileRouter.post('/share', protectRoute, shareFile)
 
 fileRouter.get('/folder/delete/:id', protectRoute, deleteFolder)
 

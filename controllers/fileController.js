@@ -17,6 +17,7 @@ const ValidationError = require("../errors/ValidationError")
 
 const {
   getFiles,
+  getFile,
   createRootFolder,
   getFolders,
   hasRootFolder,
@@ -28,6 +29,7 @@ const {
   getUniqueFile,
   getFileById,
   deleteFileById,
+  shareFile: dbShareFile,
   shareFolder: dbShareFolder,
   deleteFolder: dbDeleteFolder,
   updateFolder: dbUpdateFolder
@@ -127,23 +129,6 @@ const deleteFile = [
     }
   },
 ];
-
-const shareFile = [
-  async (req,res,next) =>  {
-    const getTemporaryUrl = (publicId, expiresInSeconds = 3600) => {
-      const timestamp = Math.floor(Date.now() / 1000) + expiresInSeconds;
-      
-      const url = cloudinary.url(file.publicId, {
-        type: 'authenticated',       
-        resource_type: file.resource_type,     
-        sign_url: true,              // enables signature
-        expires_at: timestamp        // sets expiration time
-      });
-      
-      return url;
-    };
-  }
-]
 
 const uploadFile = [
   (req, res, next) => {
@@ -322,7 +307,7 @@ const uploadFile = [
         
         const user = res.locals.currentUser
         
-        if (user.id !== req.body.authorId) {
+        if (user.id !== Number(req.body.authorId)) {
           req.errors = [
             {
               msg: 'Cannot update a folder that is not owned by the current user.'
@@ -377,7 +362,7 @@ const uploadFile = [
       }
     ]
     
-
+    
     
     async function deleteFolder (req, res) {
       const user = res.locals.currentUser
@@ -411,7 +396,7 @@ const uploadFile = [
           rootFolder = await createRootFolder(user.id)
         }
         
-        if (req.params.folderId && (req.params.folderId !== rootFolder.id)) {
+        if (req.params.folderId && (Number(req.params.folderId) !== rootFolder.id)) {
           console.log('this is not the root folder that we are about to display')
           rootFolder = await getFolder(user.id, req.params.folderId)
           if (!rootFolder) {
@@ -476,6 +461,59 @@ const uploadFile = [
       }
     }
     
+    const shareFile = [
+      basicFileIdCheck(body("fileId")),
+      body("share-duration")
+      .trim()
+      .notEmpty()
+      .withMessage("Share duration must be selected.")
+      .isInt({ min: 0, max: 7 })
+      .withMessage("Share duration must be a number 0-7."),
+      async (req, res, next) => {
+        const user = res.locals.currentUser;
+        // check if current user owns this folder or not
+        console.log("req.body: ", req.body);
+        const file = await getFile(user.id, req.body.fileId);
+        if (!file) {
+          // this user is not allowed to share
+          res.status(401);
+          next({ msg: "Insufficient permissions to share this folder." });
+        } else {
+          console.log("do something to share it: ", file);
+          const sharedFile = await dbShareFile(
+            user.id,
+            file.parentId,
+            file.id,
+            req.body["share-duration"]
+          );
+          console.log(sharedFile);
+          
+          const paths = await getPathsForDisplay(user.id, file.parentId);
+          
+          // setup daysToExpire from shareExpiry ms value
+          const remMS = BigInt(sharedFile.shareExpiry) - BigInt(Date.now());
+          const shareRem = msToDays(remMS);
+          if (remMS > 0) {
+            sharedFile.daysToExpire = sharedFile.shareExpiry
+            ? `${shareRem.days} days, ${shareRem.hours} hours`
+            : "0 days";
+            sharedFile.sharedURL = `${req.headers.origin}/shared/file/${user.id}/${sharedFile.parentId}/${sharedFile.sharedId}/${sharedFile.id}`;
+          } else {
+            //TODO run an async update call to clear out the shareExpiry and sharedId since the duration time has expired
+          }
+          sharedFile.shared = remMS > 0;
+          res.render("share-result", {
+            user,
+            element: sharedFile,
+            paths,
+            elementType: "file",
+            elementId: "fileId",
+            elementImg: "/assets/file.svg",
+          });
+        }
+      },
+    ];
+    
     const shareFolder = [
       basicFolderIdCheck(body('folderId')),
       body('share-duration')
@@ -509,14 +547,17 @@ const uploadFile = [
             const shareRem = msToDays(remMS)
             if (remMS > 0) {
               sharedFolder.daysToExpire = sharedFolder.shareExpiry
-                ? `${shareRem.days} days, ${shareRem.hours} hours`
-                : "0 days";
+              ? `${shareRem.days} days, ${shareRem.hours} hours`
+              : "0 days";
               sharedFolder.sharedURL = `${req.headers.origin}/shared/folder/${user.id}/${sharedFolder.id}/${sharedFolder.sharedId}`;
             } else {
               //TODO run an async update call to clear out the shareExpiry and sharedId since the duration time has expired
             }
             sharedFolder.shared = remMS > 0
-            res.render("share-result", { user, folder: sharedFolder, paths });
+            res.render("share-result", { user, element: sharedFolder, paths,
+            elementType: "folder",
+            elementId: "folderId",
+            elementImg: "/assets/folder.svg", });
           }
         } else {
           throw new ValidationError("Please sign in first.")
@@ -524,29 +565,62 @@ const uploadFile = [
       }
     ];
     
+    const getShareFile = [
+      basicFileIdCheck(param("fileId")),
+      async (req, res, next) => {
+        
+        const user = res.locals.currentUser;
+        // check if current user owns this folder or not
+        const file = await getFile(user.id, req.params.fileId)
+        if (!file) {
+          // this user is not allowed to share
+          req.status(401);
+          next({ msg: "Insufficient permissions to share this file." });
+        } else {
+          console.log("file retrieved: ", file);
+          const paths = await getPathsForDisplay(
+            user.id,
+            file.parentId
+          );
+          res.render("share", {
+            user,
+            element: file,
+            elementType: "file",
+            action: "/file/share",
+            paths,
+            elementId: "fileId",
+            elementImg: "/assets/file.svg",
+          });
+        }
+        
+      }
+    ];
+    
     const getShareFolder = [
       basicFolderIdCheck(param('folderId')),
       async (req, res, next) => {
-        if (req.isAuthenticated) {
-          const user = res.locals.currentUser;
-          // check if current user owns this folder or not
-          
-          const folder = await getFolder(user.id, req.params.folderId)
-          if (!folder) {
-            // this user is not allowed to share
-            next({ msg: "Insufficient permissions to share this folder." });
-          } else {
-            console.log("folder retrieved: ", folder);
-            const paths = await getPathsForDisplay(
-              user.id,
-              folder.id
-            );
-            res.render('share', { user, folder, paths })
-          }
+        
+        const user = res.locals.currentUser;
+        // check if current user owns this folder or not
+        const folder = await getFolder(user.id, req.params.folderId)
+        if (!folder) {
+          // this user is not allowed to share
+          next({ msg: "Insufficient permissions to share this folder." });
         } else {
-          throw new ValidationError("Insufficient permissions to share this folder")
+          console.log("folder retrieved: ", folder);
+          const paths = await getPathsForDisplay(
+            user.id,
+            folder.id
+          );
+          res.render('share', {
+            user, element: folder, paths,
+            elementType: 'folder',
+            action: '/file/folder/share',
+            elementId: 'folderId', elementImg: '/assets/folder.svg'
+          })
         }
       }
+      
     ];
     
     module.exports = {
@@ -558,6 +632,8 @@ const uploadFile = [
       uploadFile,
       deleteFile,
       getShareFolder,
-      shareFolder
+      getShareFile,
+      shareFolder,
+      shareFile,
     }
     
