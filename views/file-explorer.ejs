@@ -84,7 +84,7 @@
                   <input type="hidden" name="authorId" value=<%= user.id %>>
                   <input type="hidden" name="folderId" value=<%= rootFolder.id %>>
                   <input type="file" name="upload">
-                  <button type="submit"><img src="/assets/upload_file.svg" alt="upload file"></button>
+                  <button type="submit" id="submit-file"><img src="/assets/upload_file.svg" alt="upload file"></button>
                   <button id="cancel-upload"><img src="/assets/close_small_black.svg" alt="close"></button>
                 </form>
                 <ul class="contents">
@@ -125,13 +125,19 @@
                     const cancelUpload = document.querySelector("#cancel-upload");
                     const allContextMenus = document.querySelectorAll(".context-menu");
                     const burgerMenu = document.querySelector("#burger-menu");
-                    const status = document.querySelector('#upload-status');
+                    const statusDiv = document.querySelector('#upload-status');
                     const errors = document.querySelector('.errors');
+                    const submitFileBtn = document.querySelector('#submit-file');
                     const menu = document
                     .querySelector("#root-folder-context-menu");
                     
+                    submitFileBtn.addEventListener('click', () => {
+                      hideAllMenus();
+                      statusDiv.style.display = 'grid'; // Show the message
+                      debugger;
+                    })
                     window.addEventListener('load', () => {
-                      status.style.display = 'none';
+                      statusDiv.style.display = 'none';
                     })
                     
                     rootFolder.addEventListener('click', (e) => {
@@ -141,13 +147,15 @@
                         menu.style.top = e.pageY + "px";
                       }
                     })
+/*
                     uploadFileForm.addEventListener('submit', function () {
                       hideAllMenus();
-                      status.style.display = 'flex'; // Show the message
+                      debugger
+                      status.style.display = 'grid'; // Show the message
+                      debugger;
                     });
-                    
+                    */
                     createNewFolderForm.style.display="none";
-                    uploadFileForm.style.display = "none";
                     
                     document.onclick = hideAllMenus;
                     

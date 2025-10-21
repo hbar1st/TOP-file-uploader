@@ -215,7 +215,6 @@ const uploadFile = [
           ...req.parentFolder.pathArr,
           folderId
         ])
-        
         res.redirect('/file/explorer/' + file.parentId)
       } catch (error) {
         console.log('in uploadFile: found an error during upload?')

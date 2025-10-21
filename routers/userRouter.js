@@ -4,17 +4,28 @@ const userRouter = Router()
 
 const { getLoginForm, signUp, authenticate } = require('../controllers/userController')
 
-userRouter.get('/', (req, res, next) => { console.log('in the router'); next() }, (req, res) => getLoginForm({ newUser: true, ...req }, res))
+function clearOldErrors(req, res, next) {
+  delete req.errors;
+  next();
+}
+userRouter.get(
+  "/",
+  clearOldErrors,
+  (req, res) => getLoginForm({ newUser: true, ...req }, res)
+);
 
 userRouter
-  .route('/sign-up')
-  .get((req, res) => getLoginForm({ newUser: true, ...req }, res))
-  .post(signUp)
+  .route("/sign-up")
+  .get(
+   clearOldErrors,
+    (req, res) => getLoginForm({ newUser: true, ...req }, res)
+  )
+  .post(signUp);
 
 userRouter
   .route('/login')
-  .get((req, res) => getLoginForm({ newUser: false, ...req }, res))
-  .post(authenticate, (req, res) => { console.log('hmm, why am I here? ') })
+  .get(clearOldErrors, (req, res) => getLoginForm({ newUser: false, ...req }, res))
+  .post(authenticate)
 
 userRouter.get('/logout', (req, res, next) => {
   req.logout((err) => {
