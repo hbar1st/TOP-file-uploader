@@ -497,7 +497,7 @@ const uploadFile = [
             sharedFile.daysToExpire = sharedFile.shareExpiry
             ? `${shareRem.days} days, ${shareRem.hours} hours`
             : "0 days";
-            sharedFile.sharedURL = `${req.headers.origin}/shared/file/${user.id}/${sharedFile.parentId}/${sharedFile.sharedId}/${sharedFile.id}`;
+            sharedFile.sharedURL = `${req.headers.origin}/shared/folder/${user.id}/${sharedFile.parentId}/${sharedFile.sharedId}/${sharedFile.id}`;
           } else {
             //TODO run an async update call to clear out the shareExpiry and sharedId since the duration time has expired
           }

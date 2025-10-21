@@ -11,7 +11,7 @@ const {
 
 shareRouter.get("/folder/:userId/:folderId/:sharedId", getPublicExplorer);
 
-shareRouter.get("/file/:userId/:folderId/:sharedId/:fileId", getFileDetails);
+shareRouter.get("/folder/:userId/:folderId/:sharedId/:fileId", getFileDetails);
 
 shareRouter.get("/folder/:userId/:folderId/:sharedId/download/:id", getFileDetails, downloadFile)
 
