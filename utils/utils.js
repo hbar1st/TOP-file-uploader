@@ -108,7 +108,7 @@ const getFileDetails = [
           );
           console.log("found the root shared folder: ", sharedFolder);
           if (!sharedFolder) {
-            next(new Error({ msg: "Invalid request" }));
+            return next(new Error({ msg: "Invalid request" }));
           }
           //TODO since we came here on an unauthenticated route, we need to check if the shared file/folder path is still active or not
           // figure out if share has expired
@@ -123,7 +123,7 @@ const getFileDetails = [
               console.log(error);
             }
             res.status(401);
-            next(new Error({ msg: "This share has expired" }));
+            return next(new Error({ msg: "This share has expired" }));
           }
         }
       }
@@ -145,7 +145,7 @@ const downloadFile = [
     
     if (!file) {
       res.status(404);
-      next(new Error({ msg: "Invalid request." }));
+      return next(new Error({ msg: "Invalid request." }));
     }
     if (req.params.sharedId && req.params.sharedId !== file.sharedId) {
       // check if the file is descending from a shared folder to match or not
@@ -157,7 +157,7 @@ const downloadFile = [
       console.log("found the root shared folder: ", rootFolder);
       if (!rootFolder) {
         res.status(401);
-        next(new Error({ msg: "Invalid request, the file has not been shared." }));
+        return next(new Error({ msg: "Invalid request, the file has not been shared." }));
         return;
       }
       // if it does descend from a shared folder, then confirm the expiry date has not passed first
@@ -184,11 +184,11 @@ const downloadFile = [
           response.data.pipe(res);
         });
       } catch (error){
-        next(error);
+        return next(error);
       }
     } else {
       console.log("author Id doesn't match user id: ", file.authorId, user.id);
-      next({
+      return next({
         msg: "Improper permissions to download this file: " + file.name,
       });
     }

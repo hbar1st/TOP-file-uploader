@@ -26,7 +26,7 @@ const getPublicExplorer = [
       let file = await getFile(req.params.userId, req.params.fileId)
       if (!file) {
         res.status(400);
-        next(new Error({ msg: 'The file cannot be found.' }))
+        return next(new Error({ msg: 'The file cannot be found.' }))
       }
       
       // 1- the sharedId must match the one given in the URL
@@ -34,7 +34,7 @@ const getPublicExplorer = [
       if (file.sharedId !== req.params.sharedId) {
         
         setStatus(400);
-        next(new Error({ msg: "Invalid request" }));
+        return next(new Error({ msg: "Invalid request" }));
       } else {
         // figure out if share has expired
         const remMS = BigInt(file.shareExpiry) - BigInt(Date.now());
@@ -49,18 +49,18 @@ const getPublicExplorer = [
             console.log(error);
           }
           res.status(401)
-          next(new Error({ msg: "This share has expired" }));
+          return next(new Error({ msg: "This share has expired" }));
         } else {
           console.log("TODO: do something here?");
           res.status(500);
-          next(new Error({msg: 'missing work item'}))
+          return next(new Error({msg: 'missing work item'}))
         }
       }
     } else {
       let rootFolder = await getFolder(req.params.userId, req.params.folderId)
       if (!rootFolder) {
-        res.status(400);
-        next(new Error({ msg: 'The folder cannot be found.' }))
+        res.status(404);
+        return next(new Error({ msg: 'The folder cannot be found.' }))
       }
       
       const folder = rootFolder; // initially assume the folder we're viewing is the one originally shared
@@ -73,7 +73,7 @@ const getPublicExplorer = [
         console.log("found the root shared folder: ", rootFolder);
         if (!rootFolder) {
           res.status(400);
-          next(new Error({ msg: 'Invalid request' }))
+          return next(new Error({ msg: 'Invalid request' }))
         }
       }
       // figure out if share has expired
@@ -90,7 +90,7 @@ const getPublicExplorer = [
           console.log(error);
         }
         res.status(401)
-        next(new Error({ msg: "This share has expired" }));
+        return next(new Error({ msg: "This share has expired" }));
       } else {
         
         const userId = rootFolder.authorId;

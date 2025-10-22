@@ -122,10 +122,10 @@ const deleteFile = [
             );
             
           }
-          next(err);
+          return next(err);
         }
       } else {
-        next({ msg: "Improper permissions to delete this file: " + file.name });
+        return next({ msg: "Improper permissions to delete this file: " + file.name });
       }
     }
   },
@@ -230,7 +230,7 @@ const uploadFile = [
         
         if (!file) {
           res.status(500);
-          next(new Error("Failed to create this file"));
+          return next(new Error("Failed to create this file"));
         }
         res.redirect('/file/explorer/' + file.parentId)
       } catch (error) {
@@ -245,7 +245,7 @@ const uploadFile = [
           );
         }
         console.error(error)
-        next(error)
+        return next(error)
       }
     }
   ]
@@ -495,7 +495,7 @@ const uploadFile = [
       if (!file) {
         // this user is not allowed to share
         res.status(401);
-        next({ msg: "Insufficient permissions to share this folder." });
+        return next({ msg: "Insufficient permissions to share this folder." });
       } else {
         console.log("do something to share it: ", file);
         const sharedFile = await dbShareFile(
@@ -547,7 +547,7 @@ const uploadFile = [
         const folder = await getFolder(user.id, req.body.folderId)
         if (!folder) {
           // this user is not allowed to share
-          next({ msg: "Insufficient permissions to share this folder." });
+          return next({ msg: "Insufficient permissions to share this folder." });
         } else {
           console.log("do something to share it: ", folder);
           const sharedFolder = await dbShareFolder(
@@ -593,7 +593,7 @@ const uploadFile = [
         if (!file) {
           // this user is not allowed to share
           req.status(401);
-          next({ msg: "Insufficient permissions to share this file." });
+          return next({ msg: "Insufficient permissions to share this file." });
         } else {
           console.log("file retrieved: ", file);
           const paths = await getPathsForDisplay(
