@@ -1,11 +1,5 @@
 const express = require('express')
 const crypto = require('crypto')
-/*
-var morgan = require("morgan");
-const pino = require("pino-http")();
-*/
-
-const cors = require('cors')
 
 const cloudinary = require('cloudinary').v2
 
@@ -20,12 +14,6 @@ const path = require('node:path')
 require('dotenv').config()
 
 const app = express()
-
-// add some loggers
-/*
-app.use(morgan("combined"));
-app.use(pino);
-*/
 
 // setup ejs for templating views
 // eslint-disable-next-line no-undef
@@ -54,7 +42,6 @@ async function setupCloudinary () {
 
 setupCloudinary()
 
-app.use(cors())
 
 const MS_IN_24_HRS = 1000 * 60 * 60 * 24 // 24 hours in milliseconds
 
