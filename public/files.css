@@ -24,9 +24,13 @@ main section:first-of-type {
   align-items: center;
   background-color: #21a99254;
   margin-top: 3ch;
-  padding: .1ch 1ch;
   user-select: none;
   
+  > span:first-of-type:hover {
+    cursor: help;
+    background-color: #8effdb;
+  }
+
   > span:first-of-type {
     display: flex;
     flex-direction: row;
@@ -36,7 +40,7 @@ main section:first-of-type {
     align-items: center;
     column-gap: 1ch;
     font-weight: 600;
-    
+    padding: .1ch 1ch;
     
     > form > input {
       background-color: transparent;
@@ -117,11 +121,14 @@ main section:first-of-type {
 
 #create-new-folder, #upload-file {
   display: none;
+  padding: 0px 2px;
+  background-color: #ffab0070;
 }
 
 #upload-file button[type="submit"] {
   background-color: white;
 }
+
 
 button:has(img) {
   display: flex;
