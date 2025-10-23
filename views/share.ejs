@@ -21,7 +21,7 @@
     </header>
     <section>
       <div>In 
-        <img src=<%= elementImg %> alt=<%= elementType %>>
+        <a href=<%= `/file/explorer/${paths[0].id}` %>><img src=<%= elementImg %> alt=<%= elementType %>></a>
         <% paths.forEach((path,i) => { 
           if (i === 0 || i < paths.length-1) { %>
             <a href=<%= `/file/explorer/${path.id}` %>><%= path.name %></a>

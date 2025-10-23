@@ -11,13 +11,7 @@
     <header>
       <div id="burger"><button id="burger-button"><img src="/assets/hamburger_menu.svg" alt=""></button><h1>File Uploader App</h1></div>
       <h2>Welcome <%= user.name %></h2>
-      <div class="burger-menu" id="burger-menu">
-        <ul>
-          <li>
-            <a href=<%= `/logout/` %>>Logout</a>
-          </li>
-        </ul>
-      </div>
+      <%- include("partials/burger.ejs") %>
     </header>
     <div>
       

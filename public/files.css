@@ -30,7 +30,7 @@ main section:first-of-type {
     cursor: help;
     background-color: #8effdb;
   }
-
+  
   > span:first-of-type {
     display: flex;
     flex-direction: row;
@@ -235,5 +235,31 @@ button, img {
   
   > ul {
     list-style-type: none;
+    display: grid;
+    grid-template-columns: max-content;
+    grid-template-rows: auto;
+    
+    li {
+      padding: 1ch;
+    }
+    
+    > li a {
+      text-decoration: none;
+      color: black;
+      font-family: sans-serif;
+    }
+    
+    > li:hover {
+      background-color: #cce2db;
+    }
   }
+}
+
+
+main > article > ul {
+  display: flex;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  row-gap: 1rem;
+  margin: 2rem;
 }

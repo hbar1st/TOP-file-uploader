@@ -94,9 +94,14 @@ const signUp = [
     }
   }
 ]
+
+function getHelpNotes(req, res) {
+  res.render('help');
+}
+
 module.exports = {
   getLoginForm,
   signUp,
-  authenticate
-
+  authenticate,
+  getHelpNotes
 }

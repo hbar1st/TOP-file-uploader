@@ -2,7 +2,7 @@ const { Router } = require('express')
 
 const userRouter = Router()
 
-const { getLoginForm, signUp, authenticate } = require('../controllers/userController')
+const { getLoginForm, signUp, authenticate, getHelpNotes } = require('../controllers/userController')
 
 function clearOldErrors(req, res, next) {
   delete req.errors;
@@ -26,6 +26,8 @@ userRouter
   .route('/login')
   .get(clearOldErrors, (req, res) => getLoginForm({ newUser: false, ...req }, res))
   .post(authenticate)
+
+userRouter.get('/help', getHelpNotes);
 
 userRouter.get('/logout', (req, res, next) => {
   req.logout((err) => {
